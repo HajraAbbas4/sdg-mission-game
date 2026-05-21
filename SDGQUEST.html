@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>SDG Quest 🌌 Bubble Shooter</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Fredoka+One&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04030f;--card:#0d0b1e;--surface:#12102a;--border:#2a2560;
+  --purple:#a855f7;--cyan:#22d3ee;--gold:#fbbf24;--pink:#ec4899;--green:#4ade80;
+  --txt:#e2e8ff;--muted:#7c7faa;
+}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:#b8d4e8;color:var(--txt);}
+
+#starfield{position:fixed;inset:0;pointer-events:none;z-index:0;display:none;}
+#nebula{position:fixed;inset:0;pointer-events:none;z-index:0;display:none;}
+
+.page{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;}
+.page.hidden{display:none !important;}
+
+/* ── MENU ── */
+#menuPage{padding:16px;background:linear-gradient(160deg,#0a1628 0%,#1a2a4a 50%,#0d1f3c 100%);}
+.menu-logo-icon{
+  width:76px;height:76px;border-radius:26px;
+  background:linear-gradient(135deg,#6d28d9,#a855f7);
+  box-shadow:0 0 36px rgba(168,85,247,.65),0 6px 0 #3b0764;
+  display:flex;align-items:center;justify-content:center;font-size:40px;
+  margin:0 auto 10px;
+  animation:logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 36px rgba(168,85,247,.65),0 6px 0 #3b0764}50%{box-shadow:0 0 64px rgba(168,85,247,.95),0 6px 0 #3b0764}}
+.menu-title{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(36px,7vw,62px);line-height:1;
+  background:linear-gradient(90deg,#a855f7,#22d3ee,#ec4899);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  text-align:center;margin-bottom:2px;
+}
+.menu-sub{font-size:14px;font-weight:800;color:var(--muted);text-align:center;margin-bottom:22px;}
+.menu-card{
+  background:var(--card);border:2px solid rgba(168,85,247,.35);border-radius:30px;
+  padding:22px 28px;max-width:360px;width:100%;
+  box-shadow:0 0 0 1px rgba(168,85,247,.1),0 20px 60px rgba(168,85,247,.15);
+  display:flex;flex-direction:column;gap:11px;
+}
+.menu-btn{
+  font-family:'Fredoka One',cursive;font-size:18px;border:none;border-radius:16px;
+  padding:14px 18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  gap:8px;transition:transform .15s,box-shadow .15s;width:100%;position:relative;overflow:hidden;
+}
+.menu-btn:hover{transform:translateY(-2px);} .menu-btn:active{transform:translateY(1px);}
+.btn-play{
+  background:linear-gradient(135deg,#6d28d9,#a855f7);color:white;
+  box-shadow:0 0 22px rgba(168,85,247,.5),0 5px 0 #3b0764;font-size:22px;padding:16px 18px;
+}
+.btn-play::before{content:'';position:absolute;top:-50%;left:-60%;width:40%;height:200%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transform:skewX(-20deg);animation:shine 3s ease-in-out infinite;}
+@keyframes shine{0%,100%{left:-60%}50%{left:120%}}
+.btn-howto{background:rgba(34,211,238,.1);border:2px solid rgba(34,211,238,.35);color:var(--cyan);box-shadow:0 0 12px rgba(34,211,238,.15),0 4px 0 rgba(0,0,0,.4);}
+.btn-settings{background:rgba(251,191,36,.1);border:2px solid rgba(251,191,36,.3);color:var(--gold);box-shadow:0 0 12px rgba(251,191,36,.12),0 4px 0 rgba(0,0,0,.4);}
+
+.space-deco{position:fixed;pointer-events:none;animation:floatUD 4s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(168,85,247,.5));z-index:5;}
+@keyframes floatUD{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-14px) rotate(7deg)}}
+
+/* ── LEVEL SELECT ── */
+#levelPage{padding:20px;}
+.level-title{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(28px,6vw,48px);line-height:1;
+  background:linear-gradient(90deg,#22d3ee,#a855f7,#ec4899);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  text-align:center;margin-bottom:6px;
+}
+.level-sub{font-size:13px;font-weight:800;color:var(--muted);text-align:center;margin-bottom:22px;}
+.level-grid{display:flex;flex-direction:column;gap:13px;max-width:360px;width:100%;}
+.level-card{
+  background:var(--card);border-radius:22px;padding:16px 20px;
+  display:flex;align-items:center;gap:14px;cursor:pointer;
+  border:2px solid transparent;position:relative;overflow:hidden;
+  transition:transform .2s,box-shadow .2s;
+}
+.level-card:hover{transform:translateY(-3px);}
+.level-card:active{transform:translateY(1px);}
+.level-card-l1{border-color:rgba(34,211,238,.4);box-shadow:0 0 18px rgba(34,211,238,.15),0 5px 0 rgba(0,0,0,.5);}
+.level-card-l1:hover{box-shadow:0 0 32px rgba(34,211,238,.35),0 7px 0 rgba(0,0,0,.5);}
+.level-card-l2{border-color:rgba(168,85,247,.4);box-shadow:0 0 18px rgba(168,85,247,.15),0 5px 0 rgba(0,0,0,.5);}
+.level-card-l2:hover{box-shadow:0 0 32px rgba(168,85,247,.35),0 7px 0 rgba(0,0,0,.5);}
+.level-card-l3{border-color:rgba(251,191,36,.4);box-shadow:0 0 18px rgba(251,191,36,.15),0 5px 0 rgba(0,0,0,.5);}
+.level-card-l3:hover{box-shadow:0 0 32px rgba(251,191,36,.35),0 7px 0 rgba(0,0,0,.5);}
+.level-card::before{content:'';position:absolute;inset:0;opacity:.06;}
+.level-card-l1::before{background:linear-gradient(135deg,#22d3ee,transparent);}
+.level-card-l2::before{background:linear-gradient(135deg,#a855f7,transparent);}
+.level-card-l3::before{background:linear-gradient(135deg,#fbbf24,transparent);}
+.level-num-badge{
+  width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  font-family:'Fredoka One',cursive;font-size:24px;color:white;flex-shrink:0;
+}
+.badge-l1{background:linear-gradient(135deg,#0ea5e9,#22d3ee);box-shadow:0 0 14px rgba(34,211,238,.5);}
+.badge-l2{background:linear-gradient(135deg,#7c3aed,#a855f7);box-shadow:0 0 14px rgba(168,85,247,.5);}
+.badge-l3{background:linear-gradient(135deg,#d97706,#fbbf24);box-shadow:0 0 14px rgba(251,191,36,.5);}
+.level-info{}
+.level-name{font-family:'Fredoka One',cursive;font-size:18px;color:var(--txt);margin-bottom:3px;}
+.level-goals{font-size:11px;font-weight:800;color:var(--muted);margin-bottom:4px;}
+.level-emojis{font-size:16px;letter-spacing:2px;}
+.level-diff{
+  margin-left:auto;font-family:'Fredoka One',cursive;font-size:11px;
+  padding:4px 10px;border-radius:8px;flex-shrink:0;
+}
+.diff-easy{background:rgba(34,211,238,.15);color:#22d3ee;border:1px solid rgba(34,211,238,.3);}
+.diff-med{background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.3);}
+.diff-hard{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);}
+.level-back-btn{
+  font-family:'Fredoka One',cursive;font-size:14px;
+  background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.14);
+  color:var(--muted);border-radius:12px;padding:9px 18px;cursor:pointer;
+  margin-top:6px;transition:transform .15s;
+}
+.level-back-btn:hover{transform:translateY(-2px);}
+
+/* ── GAME PAGE ── */
+#gamePage{padding:0;justify-content:flex-start;background:#c2daf0;}
+.game-shell{width:100%;height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto;background:#c2daf0;}
+
+/* ── SIMPLIFIED HUD ── */
+.hud{
+  background:linear-gradient(135deg,#1a6fb8,#2980c9);
+  border-bottom:3px solid rgba(255,255,255,.3);
+  padding:6px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:6px;flex-wrap:nowrap;flex-shrink:0;
+  min-height:48px;
+}
+.hud-left{display:flex;gap:6px;align-items:center;flex-shrink:0;flex:1;}
+.hud-right{display:flex;gap:4px;align-items:center;flex-shrink:0;}
+
+/* Star pill - stays in HUD */
+.stat-pill{background:rgba(255,255,255,.3);border-radius:10px;padding:3px 8px;border:1.5px solid rgba(255,255,255,.6);min-width:80px;}
+.pill-label{font-size:8px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.5px;}
+.star-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;}
+.stars-txt{font-size:14px;letter-spacing:2px;}
+.star-bar{height:5px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden;position:relative;}
+.star-bar-fill{height:100%;background:linear-gradient(90deg,#f59e0b,#ffd700);border-radius:999px;transition:width .5s;box-shadow:0 0 4px rgba(251,191,36,.4);}
+.star-bar-mark{position:absolute;top:0;width:1px;height:100%;background:rgba(255,255,255,.2);}
+
+/* Level badge */
+.level-hud-badge{
+  font-family:'Fredoka One',cursive;font-size:9px;
+  padding:3px 8px;border-radius:7px;display:flex;align-items:center;gap:3px;white-space:nowrap;
+}
+.lvl-badge-1{background:rgba(34,211,238,.2);color:#22d3ee;border:1px solid rgba(34,211,238,.5);}
+.lvl-badge-2{background:rgba(168,85,247,.2);color:#a855f7;border:1px solid rgba(168,85,247,.5);}
+.lvl-badge-3{background:rgba(251,191,36,.2);color:#fbbf24;border:1px solid rgba(251,191,36,.5);}
+
+/* Player name badge */
+.player-name-hud{
+  font-family:'Fredoka One',cursive;font-size:9px;
+  background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.4);
+  border-radius:6px;padding:3px 7px;color:#c4b5fd;
+  max-width:65px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+.hud-btn{
+  font-family:'Fredoka One',cursive;font-size:9px;border:none;cursor:pointer;
+  padding:5px 8px;border-radius:8px;display:flex;align-items:center;gap:3px;
+  transition:transform .15s;white-space:nowrap;
+}
+.hud-btn:hover{transform:translateY(-2px);}
+.hud-btn:active{transform:translateY(1px);}
+.hud-btn.back{background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);color:white;}
+.hud-btn.restart-hud{background:linear-gradient(135deg,#059669,#10b981);color:white;box-shadow:0 0 7px rgba(16,185,129,.4);}
+.hud-btn.help-hud{background:rgba(255,220,50,.25);border:1.5px solid rgba(255,220,50,.6);color:#fff;}
+
+.canvas-wrap{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#c2daf0;}
+#gameCanvas{display:block;cursor:crosshair;}
+
+/* ── OVERLAYS ── */
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;padding:14px;background:rgba(2,1,15,.88);backdrop-filter:blur(10px);}
+.overlay.hidden{display:none;}
+.modal{background:var(--card);border-radius:30px;border:2px solid rgba(168,85,247,.4);box-shadow:0 0 0 1px rgba(168,85,247,.1),0 8px 0 rgba(0,0,0,.6),0 20px 60px rgba(168,85,247,.2);max-width:420px;width:100%;max-height:90vh;overflow-y:auto;animation:popIn .38s cubic-bezier(.36,.07,.19,.97);}
+@keyframes popIn{0%{transform:scale(.72);opacity:0}70%{transform:scale(1.03)}100%{transform:scale(1);opacity:1}}
+.modal-hdr{padding:20px 22px 14px;position:relative;text-align:center;border-radius:28px 28px 0 0;}
+.modal-close{position:absolute;top:11px;right:11px;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.22);border-radius:11px;padding:6px 10px;cursor:pointer;font-size:13px;font-weight:900;color:white;line-height:1;transition:background .15s,transform .15s;z-index:10;}
+.modal-close:hover{background:rgba(255,255,255,.25);transform:scale(1.1);}
+.modal-body{padding:16px 20px 20px;}
+.modal h2{font-family:'Fredoka One',cursive;font-size:24px;color:var(--txt);margin-bottom:5px;}
+.modal p{font-weight:700;color:var(--muted);font-size:13px;line-height:1.55;}
+.modal-cta{font-family:'Fredoka One',cursive;font-size:17px;color:white;background:linear-gradient(135deg,#6d28d9,#a855f7);box-shadow:0 0 16px rgba(168,85,247,.4),0 5px 0 #3b0764;border:none;border-radius:16px;padding:13px;width:100%;cursor:pointer;display:block;transition:transform .15s,box-shadow .15s;margin-top:12px;}
+.modal-cta:hover{transform:translateY(-2px);box-shadow:0 0 26px rgba(168,85,247,.6),0 7px 0 #3b0764;}
+.modal-cta:active{transform:translateY(2px);}
+
+.htp-step{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(168,85,247,.2);padding:9px 11px;margin-bottom:7px;}
+.htp-num{width:22px;height:22px;border-radius:50%;color:white;font-family:'Fredoka One',cursive;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.htp-title{font-family:'Fredoka One',cursive;font-size:13px;color:var(--txt);margin-bottom:2px;}
+.htp-desc{font-weight:700;font-size:11px;color:var(--muted);line-height:1.4;}
+.tip-box{background:rgba(251,191,36,.07);border:1.5px solid rgba(251,191,36,.3);border-radius:12px;padding:9px 12px;margin:8px 0;display:flex;gap:7px;align-items:flex-start;}
+.tip-box p{font-weight:800;font-size:11px;color:#fde68a;margin:0;line-height:1.4;}
+
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.settings-row:last-child{border-bottom:none;}
+.settings-lbl{font-weight:800;font-size:14px;color:var(--txt);}
+.settings-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.toggle{width:50px;height:26px;border-radius:13px;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.15);cursor:pointer;position:relative;transition:background .25s;flex-shrink:0;}
+.toggle.on{background:rgba(168,85,247,.5);border-color:rgba(168,85,247,.7);box-shadow:0 0 10px rgba(168,85,247,.4);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:white;transition:left .25s;}
+.toggle.on::after{left:25px;}
+.vol-slider{-webkit-appearance:none;appearance:none;width:120px;height:5px;border-radius:999px;background:rgba(255,255,255,.12);outline:none;cursor:pointer;}
+.vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:var(--purple);box-shadow:0 0 7px rgba(168,85,247,.6);cursor:pointer;}
+
+.share-btn{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border:none;border-radius:16px;cursor:pointer;font-family:'Fredoka One',cursive;font-size:15px;color:white;margin-bottom:8px;transition:transform .15s;}
+.share-btn:hover{transform:translateY(-2px);}
+.share-icon-box{width:34px;height:34px;background:rgba(255,255,255,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;}
+.share-wa{background:linear-gradient(135deg,#128c4a,#25D366);box-shadow:0 0 12px rgba(37,211,102,.25),0 5px 0 #064e29;}
+.share-ig{background:linear-gradient(135deg,#f9ce34,#ee2a7b,#6228d7);box-shadow:0 0 12px rgba(238,42,123,.25),0 5px 0 #4a1085;}
+.share-lnk{background:linear-gradient(135deg,#1e1b4b,#312e81);box-shadow:0 0 12px rgba(99,102,241,.25),0 5px 0 #0f0e25;}
+.share-lnk.copied{background:linear-gradient(135deg,#065f46,#22c55e);}
+
+#goalPopup{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);z-index:80;pointer-events:none;display:none;}
+.goal-popup-inner{background:var(--card);border-radius:22px;padding:16px;display:flex;flex-direction:column;align-items:center;text-align:center;max-width:210px;animation:popIn .38s ease;border:2px solid rgba(168,85,247,.4);box-shadow:0 0 26px rgba(168,85,247,.25);}
+.gp-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:8px;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.gp-wow{font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1px;text-shadow:0 0 7px rgba(168,85,247,.6);}
+.gp-title{font-family:'Fredoka One',cursive;font-size:14px;color:var(--txt);margin:3px 0;}
+.gp-desc{font-size:10px;font-weight:700;color:var(--muted);}
+
+.gameover-stars{display:flex;justify-content:center;gap:8px;font-size:30px;margin:7px 0;}
+.gameover-score{font-size:13px;font-weight:800;color:var(--muted);margin-bottom:14px;}
+.gameover-btns{display:flex;gap:9px;flex-wrap:wrap;}
+.gameover-btns .modal-cta{flex:1;margin-top:0;min-width:120px;}
+.btn-menu-return{font-family:'Fredoka One',cursive;font-size:15px;color:var(--cyan);background:rgba(34,211,238,.1);border:2px solid rgba(34,211,238,.3);border-radius:16px;padding:13px;flex:1;cursor:pointer;transition:transform .15s;box-shadow:0 0 9px rgba(34,211,238,.1);min-width:100px;}
+.btn-menu-return:hover{transform:translateY(-2px);}
+.btn-restart-gameover{font-family:'Fredoka One',cursive;font-size:15px;color:#4ade80;background:rgba(74,222,128,.1);border:2px solid rgba(74,222,128,.3);border-radius:16px;padding:13px;flex:1;cursor:pointer;transition:transform .15s;box-shadow:0 0 9px rgba(74,222,128,.1);min-width:100px;}
+.btn-restart-gameover:hover{transform:translateY(-2px);}
+
+#quitOverlay{z-index:250;}
+.quit-score-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(168,85,247,.12);border:1.5px solid rgba(168,85,247,.35);border-radius:12px;padding:8px 14px;margin:8px auto 14px;}
+.quit-score-badge span{font-family:'Fredoka One',cursive;font-size:18px;color:var(--purple);}
+.quit-score-badge small{font-size:11px;font-weight:800;color:var(--muted);}
+.quit-btn-row{display:flex;gap:9px;margin-top:4px;}
+.btn-quit-stay{font-family:'Fredoka One',cursive;font-size:16px;background:linear-gradient(135deg,#6d28d9,#a855f7);color:white;box-shadow:0 0 18px rgba(168,85,247,.45),0 5px 0 #3b0764;border:none;border-radius:16px;padding:13px;flex:1;cursor:pointer;}
+.btn-quit-leave{font-family:'Fredoka One',cursive;font-size:16px;background:rgba(239,68,68,.1);border:2px solid rgba(239,68,68,.35);color:#f87171;border-radius:16px;padding:13px;flex:1;cursor:pointer;}
+.quit-warning{font-size:11px;font-weight:800;color:var(--muted);background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:8px 12px;margin-top:10px;display:flex;gap:6px;align-items:center;}
+@keyframes shakeSlow{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.quit-rocket{display:inline-block;animation:shakeSlow 1.2s ease-in-out infinite;}
+
+/* ── LEADERBOARD ── */
+#leaderboardOverlay{position:fixed;inset:0;background:rgba(2,1,15,.94);backdrop-filter:blur(12px);z-index:300;overflow-y:auto;padding:16px;display:none;}
+.lb-tab{font-family:'Fredoka One',cursive;font-size:12px;padding:6px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;transition:all .2s;}
+.lb-tab.active{background:rgba(34,211,238,.15);border-color:rgba(34,211,238,.5);color:#22d3ee;}
+
+.exit-btn{
+  position:fixed;bottom:22px;right:18px;z-index:500;
+  font-family:'Fredoka One',cursive;font-size:13px;
+  background:rgba(239,68,68,.12);border:2px solid rgba(239,68,68,.4);
+  color:#f87171;border-radius:14px;padding:9px 15px;
+  cursor:pointer;display:flex;align-items:center;gap:6px;
+  backdrop-filter:blur(12px);
+  box-shadow:0 0 14px rgba(239,68,68,.18),0 4px 0 rgba(0,0,0,.4);
+  transition:transform .15s,background .15s;
+  text-decoration:none;
+}
+.exit-btn:hover{transform:translateY(-3px);background:rgba(239,68,68,.22);}
+
+/* ── TIMER PULSE ── */
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+
+/* ── TIME UP OVERLAY ── */
+.timeup-modal{background:linear-gradient(160deg,#1a0a0a,#2d0a0a);border:3px solid #ff4444;border-radius:30px;max-width:340px;width:100%;animation:popIn .38s cubic-bezier(.36,.07,.19,.97);}
+.timeup-header{background:linear-gradient(135deg,#c0392b,#e74c3c,#ff6b6b);border-radius:27px 27px 0 0;padding:24px 20px 18px;text-align:center;}
+.timeup-body{padding:20px 22px 24px;background:#1a0505;border-radius:0 0 27px 27px;}
+</style>
+</head>
+<body>
+<div id="starfield"></div>
+<div id="nebula"></div>
+
+<div class="space-deco" style="top:7%;left:4%;animation-delay:0s;font-size:22px">🌍</div>
+<div class="space-deco" style="top:14%;right:6%;animation-delay:1.1s;font-size:18px">⭐</div>
+<div class="space-deco" style="bottom:18%;left:3%;animation-delay:.5s;font-size:20px">🌱</div>
+<div class="space-deco" style="bottom:10%;right:4%;animation-delay:1.9s;font-size:16px">💧</div>
+<div class="space-deco" style="top:42%;left:1.5%;animation-delay:1.6s;font-size:14px">☀️</div>
+<div class="space-deco" style="top:58%;right:2%;animation-delay:.35s;font-size:18px">♻️</div>
+
+<!-- ════ MENU PAGE ════ -->
+<div class="page" id="menuPage">
+  <div class="menu-logo-icon">🌍</div>
+  <div class="menu-title">SDG Quest!</div>
+  <div class="menu-sub">🌌 Pop Bubbles · Save the Universe</div>
+  <div class="menu-card">
+    <button class="menu-btn btn-play" onclick="goToLevelSelect()">🚀 &nbsp;PLAY</button>
+    <button class="menu-btn btn-howto" onclick="openModal('htpOverlay')">❓ &nbsp;How to Play</button>
+    <button class="menu-btn btn-settings" onclick="openModal('settingsOverlay')">⚙️ &nbsp;Settings</button>
+    <button class="menu-btn" style="background:rgba(34,211,238,.1);border:2px solid rgba(34,211,238,.3);color:#22d3ee;box-shadow:0 0 12px rgba(34,211,238,.15),0 4px 0 rgba(0,0,0,.4);" onclick="openLeaderboard()">🏆 &nbsp;Leaderboard</button>
+  </div>
+</div>
+
+<!-- ════ NAME ENTRY OVERLAY ════ -->
+<div class="overlay hidden" id="nameEntryOverlay" style="z-index:250;">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-hdr" style="background:linear-gradient(135deg,#0a1535,#1a0535,#061025);padding:22px 22px 16px;text-align:center;border-radius:28px 28px 0 0;">
+      <div style="font-size:44px;margin-bottom:6px">🚀</div>
+      <h2 style="font-family:'Fredoka One',cursive;font-size:24px;color:white;margin-bottom:4px;">Ready, Champion?</h2>
+      <p style="color:rgba(255,255,255,.65);font-size:12px;font-weight:700;">Enter your name to track your score on the Leaderboard!</p>
+    </div>
+    <div class="modal-body" style="background:var(--card);border-radius:0 0 28px 28px;padding:20px 22px 22px;">
+      <div style="margin-bottom:16px;">
+        <label style="font-family:'Fredoka One',cursive;font-size:13px;color:var(--muted);display:block;margin-bottom:8px;">👤 YOUR NAME</label>
+        <input id="playerNameInput" type="text" maxlength="20" placeholder="Enter your name…"
+          style="width:100%;background:rgba(255,255,255,.06);border:2px solid rgba(168,85,247,.35);border-radius:14px;padding:12px 16px;color:var(--txt);font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;outline:none;"
+          onkeydown="if(event.key==='Enter')confirmNameAndPlay()"
+          onfocus="this.style.borderColor='rgba(168,85,247,.8)'" onblur="this.style.borderColor='rgba(168,85,247,.35)'"/>
+        <div id="nameError" style="color:#f87171;font-size:11px;font-weight:800;margin-top:5px;display:none;">⚠️ Please enter your name to continue!</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="confirmNameAndPlay()" style="font-family:'Fredoka One',cursive;font-size:18px;background:linear-gradient(135deg,#6d28d9,#a855f7);color:white;box-shadow:0 0 22px rgba(168,85,247,.5),0 5px 0 #3b0764;border:none;border-radius:16px;padding:14px;flex:2;cursor:pointer;">🚀 Let's Play!</button>
+        <button onclick="skipNameEntry()" style="font-family:'Fredoka One',cursive;font-size:14px;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.14);color:var(--muted);border-radius:16px;padding:14px;flex:1;cursor:pointer;">Skip</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ LEVEL SELECT PAGE ════ -->
+<div class="page hidden" id="levelPage">
+  <div style="font-size:36px;margin-bottom:6px">🌌</div>
+  <div class="level-title">Choose Your Mission</div>
+  <div class="level-sub">Each level unlocks new SDG Goals to save!</div>
+  <div class="level-grid" id="levelGrid">
+    <!-- Rendered dynamically by buildLevelCards() -->
+  </div>
+  <button class="level-back-btn" onclick="backToMenu()">← Back to Menu</button>
+</div>
+
+<!-- ════ GAME PAGE ════ -->
+<div class="page hidden" id="gamePage">
+  <div class="game-shell">
+    <!-- SIMPLIFIED HUD: stars · level · name · menu · restart · howto -->
+    <div class="hud">
+      <div class="hud-left">
+        <!-- Stars pill -->
+        <div class="stat-pill" id="starPill">
+          <div class="star-row">
+            <span class="pill-label" style="color:white">⭐ Stars</span>
+            <span class="stars-txt" id="starsDisplay">☆☆☆</span>
+          </div>
+          <div class="star-bar">
+            <div class="star-bar-fill" id="starBarFill" style="width:0%"></div>
+            <div class="star-bar-mark" style="left:33%"></div>
+            <div class="star-bar-mark" style="left:66%"></div>
+          </div>
+        </div>
+        <!-- Level badge -->
+        <div class="level-hud-badge lvl-badge-1" id="levelHudBadge">Lv1</div>
+        <!-- Player name -->
+        <span class="player-name-hud" id="playerNameBadge" style="display:none"></span>
+      </div>
+      <div class="hud-right">
+        <button class="hud-btn back" onclick="tryReturnToMenu()">← Menu</button>
+        <button class="hud-btn restart-hud" onclick="tryRestartGame()" title="Restart">↺</button>
+        <button class="hud-btn help-hud" onclick="openModal('htpOverlay')">❓</button>
+      </div>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="gameCanvas" width="420" height="560"></canvas>
+    </div>
+
+    <div id="goalPopup">
+      <div class="goal-popup-inner" id="goalPopupInner">
+        <div class="gp-icon" id="goalPopupIcon"></div>
+        <div class="gp-wow">🌟 AMAZING MATCH!</div>
+        <div class="gp-title" id="goalPopupTitle"></div>
+        <div class="gp-desc" id="goalPopupDesc"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODALS ════ -->
+
+<!-- HOW TO PLAY -->
+<div class="overlay hidden" id="htpOverlay">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr" style="background:linear-gradient(135deg,#4c1d95,#6d28d9)">
+      <button class="modal-close" onclick="closeModal('htpOverlay')">✕ Close</button>
+      <div style="font-size:36px;margin-bottom:5px">🎮</div>
+      <h2 style="color:white;font-size:22px">How to Play!</h2>
+      <p style="color:rgba(255,255,255,.78);font-size:11px;margin-top:2px">Master the SDG Space Quest!</p>
+    </div>
+    <div class="modal-body" style="background:var(--card)">
+      <div class="htp-step"><div class="htp-num" style="background:#6366f1">1</div><div><div class="htp-title">🎯 Aim & Shoot</div><div class="htp-desc">Move your mouse to aim the glowing arrow, then <strong style="color:white">click</strong> to fire!</div></div></div>
+      <div class="htp-step"><div class="htp-num" style="background:#ec4899">2</div><div><div class="htp-title">🫧 Match 3 or More</div><div class="htp-desc">Pop <strong style="color:white">3+ bubbles</strong> of the same SDG colour. More = more points!</div></div></div>
+      <div class="htp-step"><div class="htp-num" style="background:#10b981">3</div><div><div class="htp-title">🔄 Swap Bubbles</div><div class="htp-desc">Click the <strong style="color:white">Swap button</strong> (bottom-left) or <strong style="color:white">right-click</strong> to switch your current and next bubble.</div></div></div>
+      <div class="htp-step"><div class="htp-num" style="background:#f59e0b">4</div><div><div class="htp-title">⭐ Earn Stars</div><div class="htp-desc">Stars fill as you clear the board. Clear <strong style="color:white">33%</strong> for ⭐ · <strong style="color:white">66%</strong> for ⭐⭐ · <strong style="color:white">100%</strong> for ⭐⭐⭐</div></div></div>
+      <div class="htp-step"><div class="htp-num" style="background:#8b5cf6">5</div><div><div class="htp-title">⏱ Watch the Timer!</div><div class="htp-desc">The <strong style="color:white">timer bubble</strong> and <strong style="color:white">shot counter bubble</strong> are shown inside the game area at the bottom. Don't let time run out!</div></div></div>
+      <div class="tip-box"><span style="font-size:17px;flex-shrink:0">💡</span><p><strong style="color:white">Pro tip:</strong> Bubbles disconnected from the top wall fall down — earn bonus points by breaking clusters!</p></div>
+      <button class="modal-cta" onclick="closeModal('htpOverlay')">Got it! Let's Go! 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="overlay hidden" id="settingsOverlay">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-hdr" style="background:linear-gradient(135deg,#1a1200,#2a1e00)">
+      <button class="modal-close" onclick="closeModal('settingsOverlay')">✕ Close</button>
+      <div style="font-size:32px;margin-bottom:5px">⚙️</div>
+      <h2 style="color:var(--gold)">Settings</h2>
+      <p style="color:rgba(251,191,36,.65);font-size:11px;margin-top:2px">Customise your space experience</p>
+    </div>
+    <div class="modal-body" style="background:var(--card)">
+      <div class="settings-row">
+        <div><div class="settings-lbl">🔊 Sound Effects</div><div class="settings-sub">Pops, shoots & match sounds</div></div>
+        <div class="toggle on" id="sfxToggle" onclick="toggleSFX()"></div>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-lbl">🎵 Background Music</div><div class="settings-sub">Space ambient soundtrack</div></div>
+        <div class="toggle on" id="musicToggle" onclick="toggleMusic()"></div>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-lbl">🔉 Master Volume</div><div class="settings-sub">Overall sound level</div></div>
+        <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="70" oninput="setVolume(this.value)"/>
+      </div>
+      <button class="modal-cta" onclick="closeModal('settingsOverlay')">Save Settings ✅</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE -->
+<div class="overlay hidden" id="shareOverlay">
+  <div class="modal" style="max-width:340px">
+    <div style="height:3px;background:linear-gradient(90deg,#ef4444,#f97316,#eab308,#22c55e,#3b82f6,#8b5cf6,#ec4899);border-radius:28px 28px 0 0;"></div>
+    <div class="modal-body" style="background:var(--card);position:relative;border-radius:0 0 28px 28px">
+      <button class="modal-close" style="background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#f87171" onclick="closeModal('shareOverlay')">✕</button>
+      <div style="text-align:center;margin-bottom:16px;padding-top:8px">
+        <div style="font-size:40px;margin-bottom:5px">🎉</div>
+        <h2>Tell the Universe!</h2><p>Spread the SDGs! 🌍</p>
+      </div>
+      <button class="share-btn share-wa" onclick="shareWA()"><div class="share-icon-box">💬</div> Share on WhatsApp</button>
+      <button class="share-btn share-ig" onclick="shareIG()"><div class="share-icon-box">📸</div> Share to Instagram</button>
+      <button class="share-btn share-lnk" id="copyBtn" onclick="copyLink()"><div class="share-icon-box" id="copyIcon">🔗</div><span id="copyText">Copy Game Link</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div class="overlay hidden" id="gameOverOverlay">
+  <div class="modal" style="max-width:340px">
+    <div style="background:linear-gradient(135deg,#1a0535,#2d1b4e);border-radius:28px 28px 0 0;padding:22px 20px 16px;text-align:center;">
+      <div style="font-size:52px;margin-bottom:4px">😢</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:26px;color:white;margin-bottom:2px">Out of Shots!</div>
+      <div style="font-size:12px;font-weight:800;color:rgba(200,180,255,.8)">Practice makes perfect — try again! 💪</div>
+    </div>
+    <div class="modal-body" style="background:var(--card);text-align:center;border-radius:0 0 28px 28px">
+      <div class="gameover-stars" id="gameoverStars" style="font-size:28px;margin:8px 0">☆ ☆ ☆</div>
+      <p class="gameover-score" id="gameoverScore" style="margin-bottom:14px"></p>
+      <div class="gameover-btns">
+        <button class="btn-menu-return" onclick="returnToMenu()">← Menu</button>
+        <button class="btn-restart-gameover" onclick="restartGame()">↺ Retry</button>
+        <button class="modal-cta" onclick="replayGame()">Next Level 🎮</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- YOU WIN -->
+<div class="overlay hidden" id="youWinOverlay">
+  <div class="modal" style="max-width:340px">
+    <div class="modal-body" style="background:var(--card);text-align:center;border-radius:28px;padding:28px 22px;">
+      <div style="font-size:56px;margin-bottom:6px;animation:pulse 1s ease-in-out infinite">🏆</div>
+      <h2 style="font-family:'Fredoka One',cursive;font-size:28px;background:linear-gradient(90deg,#fbbf24,#a855f7,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">YOU WIN!</h2>
+      <p style="font-size:13px;font-weight:800;color:var(--muted);margin:6px 0 10px">Board cleared! 🌍 Amazing mission!</p>
+      <div style="display:flex;justify-content:center;gap:5px;font-size:34px;margin:8px 0" id="winStars">⭐⭐⭐</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--gold);margin-bottom:6px" id="winScore"></div>
+      <div style="font-size:11px;font-weight:800;color:var(--green);background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);border-radius:10px;padding:7px 12px;margin-bottom:16px" id="winBallsLeft"></div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap;">
+        <button class="btn-menu-return" onclick="returnToMenu()" style="flex:1;min-width:100px">← Menu</button>
+        <button id="winNextBtn" class="modal-cta" onclick="replayGame()" style="flex:1;margin-top:0;min-width:100px">Next Level 🚀</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUIT CONFIRM -->
+<div class="overlay hidden" id="quitOverlay">
+  <div class="modal" style="max-width:320px">
+    <div class="modal-body" style="background:var(--card);text-align:center;border-radius:28px;padding:22px;">
+      <div style="font-size:44px;margin-bottom:6px"><span class="quit-rocket">🚀</span></div>
+      <h2 style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--txt);margin-bottom:4px">Abandon Mission?</h2>
+      <p style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;line-height:1.5">Your progress will be lost if you leave now!</p>
+      <div class="quit-score-badge">
+        <span>⭐</span>
+        <div>
+          <div style="font-family:'Fredoka One',cursive;font-size:17px;color:var(--purple)" id="quitScoreNum">0 pts</div>
+          <small>Current score</small>
+        </div>
+      </div>
+      <div class="quit-warning"><span>⚠️</span><span>Leaving now counts as mission failed — no stars saved!</span></div>
+      <div class="quit-btn-row">
+        <button class="btn-quit-stay" onclick="stayInGame()">🎮 Keep Playing</button>
+        <button class="btn-quit-leave" onclick="confirmQuit()">🏳️ Quit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESTART CONFIRM -->
+<div class="overlay hidden" id="restartOverlay">
+  <div class="modal" style="max-width:320px">
+    <div class="modal-body" style="background:var(--card);text-align:center;border-radius:28px;padding:22px;">
+      <div style="font-size:44px;margin-bottom:6px">↺</div>
+      <h2 style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--txt);margin-bottom:4px">Restart Mission?</h2>
+      <p style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:14px;line-height:1.5">This will reset your score and bubbles. Same level, fresh start!</p>
+      <div class="quit-btn-row">
+        <button class="btn-quit-stay" onclick="closeModal('restartOverlay')">🎮 Keep Playing</button>
+        <button style="font-family:'Fredoka One',cursive;font-size:16px;background:linear-gradient(135deg,#059669,#10b981);color:white;box-shadow:0 0 18px rgba(16,185,129,.45),0 5px 0 #064e29;border:none;border-radius:16px;padding:13px;flex:1;cursor:pointer;" onclick="confirmRestart()">↺ Restart</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAUSE OVERLAY -->
+<div class="overlay hidden" id="pauseOverlay" style="z-index:210;">
+  <div class="modal" style="max-width:300px;">
+    <div style="background:linear-gradient(135deg,#0a1535,#1a0a30);border-radius:28px 28px 0 0;padding:26px 22px 16px;text-align:center;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:5px;">
+        <svg width="24" height="28" viewBox="0 0 24 28" fill="none"><rect x="1" y="1" width="7" height="26" rx="3.5" fill="white"/><rect x="16" y="1" width="7" height="26" rx="3.5" fill="white"/></svg>
+        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:white;">PAUSED</div>
+      </div>
+      <div style="font-size:11px;font-weight:800;color:rgba(200,200,255,.7);">Take a breather! 🌿</div>
+    </div>
+    <div class="modal-body" style="background:var(--card);border-radius:0 0 28px 28px;padding:16px 20px 20px;">
+      <div style="display:flex;justify-content:space-around;margin-bottom:16px;gap:8px;">
+        <div style="background:rgba(255,255,255,.06);border-radius:12px;padding:10px 12px;text-align:center;flex:1;border:1px solid rgba(255,255,255,.1);">
+          <div id="pauseScore" style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--gold);">0</div>
+          <div style="font-size:9px;font-weight:900;color:var(--muted);">SCORE</div>
+        </div>
+        <div style="background:rgba(255,255,255,.06);border-radius:12px;padding:10px 12px;text-align:center;flex:1;border:1px solid rgba(255,255,255,.1);">
+          <div id="pauseShots" style="font-family:'Fredoka One',cursive;font-size:18px;color:white;">0</div>
+          <div style="font-size:9px;font-weight:900;color:var(--muted);">SHOTS</div>
+        </div>
+        <div style="background:rgba(255,255,255,.06);border-radius:12px;padding:10px 12px;text-align:center;flex:1;border:1px solid rgba(255,255,255,.1);">
+          <div id="pauseTime" style="font-family:'Fredoka One',cursive;font-size:18px;color:#22d3ee;">0s</div>
+          <div style="font-size:9px;font-weight:900;color:var(--muted);">TIME</div>
+        </div>
+      </div>
+      <button onclick="resumeGame()" style="font-family:'Fredoka One',cursive;font-size:17px;background:linear-gradient(135deg,#059669,#10b981);color:white;box-shadow:0 0 18px rgba(16,185,129,.4),0 5px 0 #064e29;border:none;border-radius:16px;padding:13px;width:100%;cursor:pointer;margin-bottom:9px;">▶ Resume</button>
+      <div style="display:flex;gap:9px;">
+        <button onclick="document.getElementById('pauseOverlay').classList.add('hidden');tryRestartGame();" style="font-family:'Fredoka One',cursive;font-size:14px;background:rgba(251,191,36,.1);border:2px solid rgba(251,191,36,.3);color:#fbbf24;border-radius:14px;padding:11px;flex:1;cursor:pointer;">↺ Restart</button>
+        <button onclick="resumeGame();tryReturnToMenu();" style="font-family:'Fredoka One',cursive;font-size:14px;background:rgba(239,68,68,.08);border:2px solid rgba(239,68,68,.3);color:#f87171;border-radius:14px;padding:11px;flex:1;cursor:pointer;">← Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TIME UP OVERLAY -->
+<div class="overlay hidden" id="timeUpOverlay" style="z-index:220;">
+  <div class="timeup-modal">
+    <div class="timeup-header">
+      <div style="font-size:54px;margin-bottom:4px;filter:drop-shadow(0 0 12px #ff4444)">⏰</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:32px;color:white;">TIME'S UP!</div>
+      <div style="font-size:13px;font-weight:800;color:rgba(255,200,200,.9);margin-top:4px">Don't worry — keep practising! 💪</div>
+    </div>
+    <div class="timeup-body">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,68,68,.15);border:2px solid rgba(255,68,68,.4);border-radius:14px;padding:10px 18px;">
+          <span style="font-size:24px">⏱</span>
+          <span style="font-family:'Fredoka One',cursive;font-size:20px;color:#ff6b6b;">00s remaining</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+        <div style="background:rgba(255,255,255,.06);border-radius:14px;padding:12px;text-align:center;border:1.5px solid rgba(255,255,255,.12);">
+          <div id="timeupStars" style="font-size:20px;margin-bottom:2px;">☆ ☆ ☆</div>
+          <div style="font-family:'Fredoka One',cursive;font-size:10px;color:var(--muted);">STARS</div>
+        </div>
+        <div style="background:rgba(255,255,255,.06);border-radius:14px;padding:12px;text-align:center;border:1.5px solid rgba(255,255,255,.12);">
+          <div style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--gold)" id="timeupScore">0 pts</div>
+          <div style="font-family:'Fredoka One',cursive;font-size:10px;color:var(--muted);">SCORE</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-family:'Fredoka One',cursive;font-size:13px;color:#a0c0a0;background:rgba(74,200,128,.08);border:1px solid rgba(74,200,128,.2);border-radius:10px;padding:7px 12px;margin-bottom:16px;" id="timeupCleared">0% cleared</div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px;margin-bottom:16px;display:flex;gap:9px;align-items:center;">
+        <span style="font-size:22px" id="timeupGoalIcon">🌍</span>
+        <div>
+          <div style="font-family:'Fredoka One',cursive;font-size:11px;color:white;margin-bottom:2px" id="timeupGoalName">SDG Tip</div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);line-height:1.4" id="timeupGoalDesc">Keep learning about the SDGs!</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:9px;">
+        <button onclick="doRestart()" style="font-family:'Fredoka One',cursive;font-size:16px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;box-shadow:0 0 18px rgba(231,76,60,.5),0 4px 0 #7b241c;border:none;border-radius:16px;padding:13px;flex:1;cursor:pointer;">↺ Try Again!</button>
+        <button onclick="returnToMenu()" style="font-family:'Fredoka One',cursive;font-size:15px;color:rgba(200,220,255,.9);background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.2);border-radius:16px;padding:13px;flex:1;cursor:pointer;">← Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT SDGs -->
+<div id="aboutOverlay" style="position:fixed;inset:0;background:rgba(2,1,15,.92);backdrop-filter:blur(10px);z-index:300;overflow-y:auto;padding:16px;display:none;">
+  <div style="max-width:860px;margin:0 auto;background:var(--card);border-radius:32px;border:2px solid rgba(168,85,247,.35);overflow:hidden;animation:popIn .38s ease;">
+    <div style="background:linear-gradient(135deg,#1a0535,#0a1535,#061025);border-bottom:1.5px solid rgba(168,85,247,.25);padding:24px;position:relative;">
+      <button onclick="document.getElementById('aboutOverlay').style.display='none'" style="position:absolute;top:12px;right:12px;background:rgba(168,85,247,.2);border:2px solid rgba(168,85,247,.4);border-radius:10px;padding:6px 11px;cursor:pointer;font-size:13px;font-weight:900;color:#e2d9ff;">✕ Close</button>
+      <div style="font-size:32px">🌍</div>
+      <h1 style="font-family:'Fredoka One',cursive;font-size:28px;background:linear-gradient(90deg,#a855f7,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:6px 0 5px;">What are the SDGs?</h1>
+      <p style="font-weight:700;color:var(--muted);font-size:13px;line-height:1.6;max-width:600px;">17 special goals by the United Nations to make the world better, fairer, and healthier for everyone by 2030! 🌟</p>
+    </div>
+    <div style="padding:20px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;" id="aboutGoalsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LEADERBOARD OVERLAY -->
+<div id="leaderboardOverlay">
+  <div style="max-width:520px;margin:0 auto;background:var(--card);border-radius:32px;border:2px solid rgba(34,211,238,.4);box-shadow:0 0 50px rgba(34,211,238,.2);overflow:hidden;animation:popIn .38s ease;">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#020b1a,#041530,#030d20);border-bottom:1.5px solid rgba(34,211,238,.3);padding:22px 22px 16px;position:relative;text-align:center;">
+      <button onclick="closeLeaderboard()" style="position:absolute;top:12px;right:12px;background:rgba(34,211,238,.15);border:2px solid rgba(34,211,238,.35);border-radius:10px;padding:6px 11px;cursor:pointer;font-size:13px;font-weight:900;color:#a5f3fc;">✕ Close</button>
+      <div style="font-size:44px;margin-bottom:4px">🏆</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:28px;background:linear-gradient(90deg,#22d3ee,#a855f7,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Hall of Champions</div>
+      <div style="font-size:11px;font-weight:800;color:var(--muted);margin-top:3px">Only players who <strong style="color:#4ade80">completed a level</strong> are recorded here 🌍</div>
+    </div>
+    <!-- Info banner -->
+    <div style="padding:10px 18px 0;">
+      <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);border-radius:10px;padding:8px 13px;font-size:11px;font-weight:800;color:#86efac;display:flex;align-items:center;gap:7px;">
+        <span style="font-size:16px">✅</span> Scores are saved automatically when you <strong>clear a level board</strong>!
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;padding:12px 18px 0;flex-wrap:wrap;">
+      <button class="lb-tab active" id="lbTabAll" onclick="switchLbTab('all',this)">🌍 All Levels</button>
+      <button class="lb-tab" id="lbTab1" onclick="switchLbTab(1,this)">🌱 Level 1</button>
+      <button class="lb-tab" id="lbTab2" onclick="switchLbTab(2,this)">⚡ Level 2</button>
+      <button class="lb-tab" id="lbTab3" onclick="switchLbTab(3,this)">🔥 Level 3</button>
+    </div>
+    <!-- Stats summary bar -->
+    <div id="lbStats" style="display:flex;gap:8px;padding:10px 18px 0;"></div>
+    <!-- Entries -->
+    <div id="lbBody" style="padding:10px 18px 22px;max-height:55vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<a class="exit-btn" href="MISSION17.html" title="Exit to Mission 17">
+  <span style="font-size:15px">🚪</span> Exit
+</a>
+
+<script>
+// ═══════════════════════════════════════
+//  AUDIO ENGINE
+// ═══════════════════════════════════════
+let audioCtx=null,masterGain=null,sfxGain=null,musicGain=null;
+let sfxEnabled=true,musicEnabled=true,masterVol=0.7;
+let musicInterval=null;
+
+function initAudio(){
+  if(audioCtx)return;
+  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  masterGain=audioCtx.createGain();masterGain.gain.value=masterVol;masterGain.connect(audioCtx.destination);
+  sfxGain=audioCtx.createGain();sfxGain.gain.value=0.8;sfxGain.connect(masterGain);
+  musicGain=audioCtx.createGain();musicGain.gain.value=0.12;musicGain.connect(masterGain);
+  startMusic();
+}
+function playTone(freq,type,dur,vol=0.5,delay=0){
+  if(!sfxEnabled||!audioCtx)return;
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(sfxGain);
+  o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime+delay);
+  g.gain.setValueAtTime(0,audioCtx.currentTime+delay);
+  g.gain.linearRampToValueAtTime(vol,audioCtx.currentTime+delay+0.01);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+delay+dur);
+  o.start(audioCtx.currentTime+delay);o.stop(audioCtx.currentTime+delay+dur+0.05);
+}
+function sndShoot(){playTone(220,'sine',.12,.4);playTone(330,'triangle',.08,.3,.04);}
+function sndPop(n){const f=[523,659,784,880,1047];for(let i=0;i<Math.min(n,5);i++)playTone(f[i%5],'sine',.18,.5,i*.05);}
+function sndFall(){playTone(440,'triangle',.22,.35);playTone(330,'triangle',.18,.3,.07);}
+function sndSwap(){playTone(523,'sine',.1,.3);playTone(659,'sine',.1,.3,.08);}
+function sndClick(){playTone(440,'sine',.06,.22);}
+function sndGameOver(){[523,494,440,392,349].forEach((f,i)=>playTone(f,'sine',.3,.45,i*.18));}
+function sndStar(){[523,659,784,1047].forEach((f,i)=>playTone(f,'sine',.2,.55,i*.1));}
+function sndQuit(){playTone(330,'triangle',.15,.3);playTone(220,'sine',.2,.25,.1);}
+function startMusic(){
+  if(musicInterval)clearInterval(musicInterval);
+  const chords=[[130.81,164.81,196],[146.83,185,220],[123.47,155.56,185],[138.59,174.61,207.65]];
+  let ci=0;
+  function chord(){
+    if(!musicEnabled||!audioCtx)return;
+    const c=chords[ci++%chords.length];
+    c.forEach(f=>{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.connect(g);g.connect(musicGain);
+      o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0,audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(.3,audioCtx.currentTime+.5);
+      g.gain.setValueAtTime(.3,audioCtx.currentTime+1.5);
+      g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+2.6);
+      o.start();o.stop(audioCtx.currentTime+3);
+    });
+  }
+  chord();musicInterval=setInterval(chord,3400);
+}
+function toggleSFX(){sfxEnabled=!sfxEnabled;document.getElementById('sfxToggle').classList.toggle('on',sfxEnabled);if(sfxEnabled){initAudio();sndClick();}}
+function toggleMusic(){musicEnabled=!musicEnabled;document.getElementById('musicToggle').classList.toggle('on',musicEnabled);if(musicEnabled&&audioCtx)startMusic();else if(musicInterval){clearInterval(musicInterval);musicInterval=null;}}
+function setVolume(v){masterVol=v/100;if(masterGain)masterGain.gain.value=masterVol;}
+
+
+// ═══════════════════════════════════════
+//  SDG DATA
+// ═══════════════════════════════════════
+const SDG_GOALS=[
+  {id:1,title:"No Poverty",color:"#E5243B",emoji:"🤝",desc:"End poverty in all its forms everywhere."},
+  {id:2,title:"Zero Hunger",color:"#DDA63A",emoji:"🍽️",desc:"End hunger and achieve food security for all."},
+  {id:3,title:"Good Health",color:"#4C9F38",emoji:"💚",desc:"Ensure healthy lives and well-being for all ages."},
+  {id:4,title:"Quality Education",color:"#C5192D",emoji:"📚",desc:"Ensure inclusive and quality education for all."},
+  {id:5,title:"Gender Equality",color:"#FF3A21",emoji:"👩‍🤝‍👨",desc:"Achieve gender equality and empower all women and girls."},
+  {id:6,title:"Clean Water",color:"#26BDE2",emoji:"💧",desc:"Ensure clean water and sanitation for all."},
+  {id:7,title:"Clean Energy",color:"#FCC30B",emoji:"☀️",desc:"Ensure access to affordable and clean energy."},
+  {id:8,title:"Decent Work",color:"#A21942",emoji:"📈",desc:"Promote sustained economic growth and decent work."},
+  {id:9,title:"Innovation",color:"#FD6925",emoji:"🏗️",desc:"Build resilient infrastructure and foster innovation."},
+  {id:10,title:"Reduced Inequality",color:"#DD1367",emoji:"⚖️",desc:"Reduce inequality within and among countries."},
+  {id:11,title:"Sustainable Cities",color:"#FD9D24",emoji:"🏙️",desc:"Make cities inclusive, safe, and sustainable."},
+  {id:12,title:"Responsible Consump.",color:"#BF8B2E",emoji:"♻️",desc:"Ensure sustainable consumption and production."},
+  {id:13,title:"Climate Action",color:"#3F7E44",emoji:"🌍",desc:"Take urgent action to combat climate change."},
+  {id:14,title:"Life Below Water",color:"#0A97D9",emoji:"🐠",desc:"Conserve oceans, seas, and marine resources."},
+  {id:15,title:"Life on Land",color:"#56C02B",emoji:"🌳",desc:"Protect and restore terrestrial ecosystems."},
+  {id:16,title:"Peace & Justice",color:"#00689D",emoji:"🕊️",desc:"Promote peaceful and inclusive societies."},
+  {id:17,title:"Partnerships",color:"#19486A",emoji:"🤜🤛",desc:"Strengthen global partnerships for sustainable development."},
+];
+const LEVEL_GOALS={
+  1:SDG_GOALS.filter(g=>g.id>=1&&g.id<=6),
+  2:SDG_GOALS.filter(g=>g.id>=7&&g.id<=12),
+  3:SDG_GOALS.filter(g=>g.id>=13&&g.id<=17).concat(SDG_GOALS.filter(g=>g.id===12)),
+};
+let currentLevel=1;
+let levelGoals=LEVEL_GOALS[1];
+
+
+// ═══════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════
+let gameInitialized=false;
+let playerName='';
+// Level unlock: persist in localStorage. Level 1 always unlocked.
+function getUnlocked(){try{return parseInt(localStorage.getItem('sdgquest_unlocked')||'1');}catch(e){return 1;}}
+function setUnlocked(lv){try{const cur=getUnlocked();if(lv>cur)localStorage.setItem('sdgquest_unlocked',String(lv));}catch(e){}}
+let maxUnlocked=getUnlocked();
+
+function buildLevelCards(){
+  maxUnlocked=getUnlocked();
+  const levels=[
+    {lv:1,name:'🌱 People Goals',goals:'Goals 1–6 · People & Water',emojis:'🤝 🍽️ 💚 📚 👩‍🤝‍👨 💧',timer:'⏱ 2 min timer',timerColor:'#22d3ee',diff:'Easy',diffCls:'diff-easy',cardCls:'level-card-l1',badgeCls:'badge-l1'},
+    {lv:2,name:'⚡ Planet Goals',goals:'Goals 7–12 · Energy & Economy',emojis:'☀️ 📈 🏗️ ⚖️ 🏙️ ♻️',timer:'⏱ 2 min timer',timerColor:'#a855f7',diff:'Medium',diffCls:'diff-med',cardCls:'level-card-l2',badgeCls:'badge-l2'},
+    {lv:3,name:'🔥 Future Goals',goals:'Goals 12–17 · Climate & Peace',emojis:'♻️ 🌍 🐠 🌳 🕊️ 🤜🤛',timer:'⏱ 2 min timer',timerColor:'#fbbf24',diff:'Hard',diffCls:'diff-hard',cardCls:'level-card-l3',badgeCls:'badge-l3'},
+  ];
+  const grid=document.getElementById('levelGrid');
+  if(!grid)return;
+  grid.innerHTML=levels.map(l=>{
+    const locked=l.lv>maxUnlocked;
+    const lockStyle=locked?'opacity:0.45;pointer-events:none;filter:grayscale(0.5);':'';
+    const lockBadge=locked?`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;border-radius:22px;background:rgba(0,0,0,0.35);">
+      <div style="background:rgba(0,0,0,0.7);border:2px solid rgba(255,255,255,0.25);border-radius:14px;padding:6px 14px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:20px">🔒</span>
+        <div>
+          <div style="font-family:'Fredoka One',cursive;font-size:12px;color:white;">Locked</div>
+          <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.65);">Complete Level ${l.lv-1} to unlock</div>
+        </div>
+      </div>
+    </div>`:
+    (l.lv<=maxUnlocked&&l.lv<3?`<div style="position:absolute;top:8px;left:8px;background:rgba(74,222,128,0.2);border:1px solid rgba(74,222,128,0.5);border-radius:8px;padding:2px 7px;font-family:'Fredoka One',cursive;font-size:9px;color:#4ade80;">✅ Unlocked</div>`:'');
+    return `<div class="level-card ${l.cardCls}" style="${lockStyle}position:relative;" ${locked?'':'onclick="startLevel('+l.lv+')"'}>
+      ${lockBadge}
+      <div class="level-num-badge ${l.badgeCls}">${l.lv}</div>
+      <div class="level-info">
+        <div class="level-name">${l.name}</div>
+        <div class="level-goals">${l.goals}</div>
+        <div class="level-emojis">${l.emojis}</div>
+        <div style="font-size:9px;font-weight:800;color:${l.timerColor};margin-top:2px">${l.timer}</div>
+      </div>
+      <div class="level-diff ${l.diffCls}">${l.diff}</div>
+    </div>`;
+  }).join('');
+}
+function goToLevelSelect(){
+  initAudio();sndClick();
+  const inp=document.getElementById('playerNameInput');
+  if(inp)inp.value=playerName||'';
+  document.getElementById('nameEntryOverlay').classList.remove('hidden');
+}
+function confirmNameAndPlay(){
+  const inp=document.getElementById('playerNameInput');
+  const name=inp?inp.value.trim():'';
+  const errEl=document.getElementById('nameError');
+  if(!name){if(errEl)errEl.style.display='block';if(inp){inp.style.borderColor='rgba(239,68,68,.7)';inp.focus();}return;}
+  if(errEl)errEl.style.display='none';
+  playerName=name;
+  const lbInp=document.getElementById('lbNameInput');
+  if(lbInp)lbInp.value=name;
+  document.getElementById('nameEntryOverlay').classList.add('hidden');
+  document.getElementById('menuPage').classList.add('hidden');
+  buildLevelCards();
+  document.getElementById('levelPage').classList.remove('hidden');
+}
+function skipNameEntry(){
+  playerName='Player';
+  document.getElementById('nameEntryOverlay').classList.add('hidden');
+  document.getElementById('menuPage').classList.add('hidden');
+  buildLevelCards();
+  document.getElementById('levelPage').classList.remove('hidden');
+}
+function backToMenu(){
+  sndClick();
+  document.getElementById('levelPage').classList.add('hidden');
+  document.getElementById('menuPage').classList.remove('hidden');
+}
+function goBackToLevelSelect(){
+  buildLevelCards();
+  document.getElementById('menuPage').classList.add('hidden');
+  document.getElementById('gamePage').classList.add('hidden');
+  document.getElementById('levelPage').classList.remove('hidden');
+}
+
+const LEVEL_BALLS={1:50,2:50,3:50};
+const LEVEL_ROWS={1:4,2:6,3:8};
+
+function startLevel(lv){
+  initAudio();sndClick();
+  currentLevel=lv;
+  levelGoals=LEVEL_GOALS[lv];
+  const badge=document.getElementById('levelHudBadge');
+  badge.textContent='Lv'+lv;
+  badge.className='level-hud-badge '+['','lvl-badge-1','lvl-badge-2','lvl-badge-3'][lv];
+
+  document.getElementById('levelPage').classList.add('hidden');
+  document.getElementById('gamePage').classList.remove('hidden');
+
+  if(!gameInitialized){gameInitialized=true;resizeCanvas();loop();}
+  score=0;shots=LEVEL_BALLS[lv];prevStars=0;totalBubbles=0;clearedBubbles=0;
+  initGame();updateUI();
+  gameRunning=true;
+  startTimer();
+  const nb=document.getElementById('playerNameBadge');
+  if(nb&&playerName){nb.textContent='👤 '+playerName;nb.style.display='block';}
+}
+
+function tryReturnToMenu(){
+  sndClick();
+  if(gameRunning&&shots>=0&&score>=0){
+    document.getElementById('quitScoreNum').textContent=score+' pts';
+    openModal('quitOverlay');
+  } else {returnToMenu();}
+}
+function tryRestartGame(){
+  sndClick();
+  if(gameRunning){openModal('restartOverlay');}else{doRestart();}
+}
+function confirmRestart(){sndClick();closeModal('restartOverlay');doRestart();}
+function doRestart(){
+  score=0;shots=LEVEL_BALLS[currentLevel]||40;prevStars=0;totalBubbles=0;clearedBubbles=0;
+  gameRunning=false;
+  closeModal('timeUpOverlay');closeModal('gameOverOverlay');
+  initGame();updateUI();
+  gameRunning=true;startTimer();
+}
+function stayInGame(){sndClick();closeModal('quitOverlay');}
+function confirmQuit(){sndQuit();closeModal('quitOverlay');returnToMenu();}
+function returnToMenu(){
+  sndClick();gameRunning=false;stopTimer();
+  closeModal('gameOverOverlay');closeModal('youWinOverlay');closeModal('timeUpOverlay');
+  document.getElementById('gamePage').classList.add('hidden');
+  document.getElementById('menuPage').classList.remove('hidden');
+}
+function restartGame(){closeModal('gameOverOverlay');doRestart();}
+function replayGame(){
+  closeModal('gameOverOverlay');closeModal('youWinOverlay');
+  // Go to level select so player sees unlocked levels
+  gameRunning=false;stopTimer();
+  document.getElementById('gamePage').classList.add('hidden');
+  buildLevelCards();
+  document.getElementById('levelPage').classList.remove('hidden');
+}
+function openModal(id){document.getElementById(id).classList.remove('hidden');}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+
+// ── TIMER ──
+const LEVEL_TIME={1:120,2:120,3:120};
+let timeLeft=120,timerInterval=null;
+function startTimer(){
+  stopTimer();
+  timeLeft=LEVEL_TIME[currentLevel]||120;
+  timerInterval=setInterval(()=>{
+    if(!gameRunning)return;
+    timeLeft--;
+    if(timeLeft<=0){
+      stopTimer();timeLeft=0;
+      gameRunning=false;showTimeUp();
+    }
+  },1000);
+}
+function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null;}}
+function showTimeUp(){
+  sndGameOver();
+  // Do NOT save score on time up - only wins count
+  const stars=getStarsFromClear();
+  const s=['☆','☆','☆'];for(let i=0;i<stars;i++)s[i]='⭐';
+  document.getElementById('timeupStars').textContent=s.join(' ');
+  document.getElementById('timeupScore').textContent=score.toLocaleString()+' pts';
+  const pct=Math.round((clearedBubbles/Math.max(1,totalBubbles))*100);
+  document.getElementById('timeupCleared').textContent='🌍 '+pct+'% of bubbles cleared';
+  const tip=levelGoals[Math.floor(Math.random()*levelGoals.length)];
+  document.getElementById('timeupGoalIcon').textContent=tip.emoji;
+  document.getElementById('timeupGoalName').textContent='Goal '+tip.id+': '+tip.title;
+  document.getElementById('timeupGoalName').style.color=tip.color;
+  document.getElementById('timeupGoalDesc').textContent=tip.desc;
+  openModal('timeUpOverlay');
+}
+
+function pauseGame(){
+  if(!gameRunning)return;
+  gamePaused=true;gameRunning=false;stopTimer();
+  const s=document.getElementById('pauseScore');if(s)s.textContent=score.toLocaleString();
+  const sh=document.getElementById('pauseShots');if(sh)sh.textContent=shots;
+  const t=document.getElementById('pauseTime');
+  if(t){const m=Math.floor(timeLeft/60),sec=timeLeft%60;t.textContent=(m>0?m+'m ':'')+sec+'s';}
+  openModal('pauseOverlay');
+}
+function resumeGame(){
+  closeModal('pauseOverlay');
+  gamePaused=false;gameRunning=true;startTimer();
+}
+
+
+// ═══════════════════════════════════════
+//  GAME CONSTANTS
+// ═══════════════════════════════════════
+const BUBBLE_R=22,GRID_ROWS=10,GRID_COLS=9;
+let CW=420,CH=560; // extra height for bottom UI area
+const ROW_H=BUBBLE_R*1.73;
+const canvas=document.getElementById('gameCanvas');
+const ctx=canvas.getContext('2d');
+
+// ── CANVAS BUTTON ZONES (for swap & pause) ──
+// These are hit-test rectangles in canvas coords
+const BTN_SWAP={x:30,y:CH-62,w:90,h:52,label:'swap'};
+const BTN_PAUSE={x:CW/2-40,y:CH-62,w:80,h:52,label:'pause'};
+
+function resizeCanvas(){
+  const wrap=canvas.parentElement;
+  const maxW=wrap.clientWidth,maxH=wrap.clientHeight;
+  const scale=Math.min(maxW/CW,maxH/CH,1);
+  canvas.style.width=(CW*scale)+'px';
+  canvas.style.height=(CH*scale)+'px';
+}
+window.addEventListener('resize',resizeCanvas);
+
+
+// ═══════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════
+let grid=[],projectile=null;
+let currentGoal=SDG_GOALS[0],nextGoal=SDG_GOALS[1],missionGoal=SDG_GOALS[0];
+let score=0,shots=40,gameRunning=false,isShooting=false;
+let poppingBubbles=[],fallingBubbles=[];
+let mousePos={x:CW/2,y:CH-100};
+let goalPopupTimer=null,prevStars=0;
+let comboCount=0;
+let totalBubbles=0,clearedBubbles=0;
+let gamePaused=false;
+// Hover state for canvas buttons
+let hoverSwap=false,hoverPause=false;
+
+
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+function getRandGoal(){
+  // ALWAYS pick a goal that exists on the current grid — never give an unmatchable ball
+  const onGrid=new Set();
+  grid.forEach(row=>row.forEach(b=>{if(b)onGrid.add(b.goalId);}));
+  const available=levelGoals.filter(g=>onGrid.has(g.id));
+  // If grid is empty or no matches, fall back to full level pool
+  if(available.length===0)return levelGoals[Math.floor(Math.random()*levelGoals.length)];
+  return available[Math.floor(Math.random()*available.length)];
+}
+function getBubbleCoords(r,c){return{x:c*(BUBBLE_R*2)+BUBBLE_R+(r%2===1?BUBBLE_R:0),y:r*ROW_H+BUBBLE_R};}
+function getGridPos(x,y){const row=Math.round((y-BUBBLE_R)/ROW_H);const col=Math.round((x-BUBBLE_R-(row%2===1?BUBBLE_R:0))/(BUBBLE_R*2));return{row,col};}
+function getNeighbors(r,c){const n=[[r,c-1],[r,c+1],[r-1,c],[r+1,c]];if(r%2===0)n.push([r-1,c-1],[r+1,c-1]);else n.push([r-1,c+1],[r+1,c+1]);return n;}
+function getStars(s){if(s>=1000)return 3;if(s>=500)return 2;if(s>=200)return 1;return 0;}
+function getStarProgress(){if(totalBubbles===0)return 0;return Math.min(100,(clearedBubbles/totalBubbles)*100);}
+function getStarsFromClear(){
+  const pct=totalBubbles>0?(clearedBubbles/totalBubbles)*100:0;
+  if(pct>=100)return 3;
+  if(pct>=70&&score>=500)return 2;
+  if(pct>=40||score>=200)return 1;
+  return 0;
+}
+
+
+// ═══════════════════════════════════════
+//  INIT GAME
+// ═══════════════════════════════════════
+function countGridBubbles(){let n=0;grid.forEach(row=>row.forEach(b=>{if(b)n++;}));return n;}
+function initGame(){
+  grid=[];
+  const goals=levelGoals;
+  const FILLED_ROWS=LEVEL_ROWS[currentLevel]||4;
+  for(let r=0;r<GRID_ROWS;r++){
+    const row=[];
+    for(let c=0;c<GRID_COLS;c++){
+      if(r<FILLED_ROWS){
+        const forbidden=new Set();
+        if(c>0&&row[c-1])forbidden.add(row[c-1].goalId);
+        if(r>0&&grid[r-1][c])forbidden.add(grid[r-1][c].goalId);
+        if(c>1&&row[c-2]&&row[c-1]&&row[c-2].goalId===row[c-1].goalId)forbidden.add(row[c-1].goalId);
+        const available=goals.filter(g=>!forbidden.has(g.id));
+        const chosen=available.length>0?available[Math.floor(Math.random()*available.length)]:goals[Math.floor(Math.random()*goals.length)];
+        const{x,y}=getBubbleCoords(r,c);
+        row.push({x,y,goalId:chosen.id});
+      }else{row.push(null);}
+    }
+    grid.push(row);
+  }
+  currentGoal=getRandGoal();nextGoal=getRandGoal();missionGoal=getRandGoal();
+  poppingBubbles=[];fallingBubbles=[];projectile=null;isShooting=false;comboCount=0;
+  totalBubbles=countGridBubbles();clearedBubbles=0;
+}
+
+
+// ═══════════════════════════════════════
+//  UI UPDATES
+// ═══════════════════════════════════════
+function updateUI(){
+  const stars=Math.min(gameRunning?2:3,getStarsFromClear());
+  const s=['☆','☆','☆'];for(let i=0;i<stars;i++)s[i]='⭐';
+  document.getElementById('starsDisplay').textContent=s.join('');
+  document.getElementById('starBarFill').style.width=Math.min(90,getStarProgress())+'%';
+  const liveStars=Math.min(gameRunning?2:3,getStarsFromClear());
+  if(liveStars>prevStars){sndStar();prevStars=liveStars;}
+}
+
+
+// ═══════════════════════════════════════
+//  SWAP
+// ═══════════════════════════════════════
+function swapBubbles(){if(isShooting||!gameRunning||gamePaused)return;sndSwap();const t=currentGoal;currentGoal=nextGoal;nextGoal=t;}
+
+
+// ═══════════════════════════════════════
+//  SDG ICON DRAWERS
+// ═══════════════════════════════════════
+const SDG_ICON_DRAWERS={
+  1:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';[[-.38,-.22,.14],[.38,-.22,.14],[-.52,.12,.1],[.52,.12,.1],[0,-.15,.18]].forEach(([ox,oy,r])=>{c.beginPath();c.arc(ox*R,oy*R,r*R,0,Math.PI*2);c.fill();c.beginPath();c.moveTo((ox-r)*R,(oy+r*0.5)*R);c.quadraticCurveTo(ox*R,(oy+r*1.8)*R,(ox+r)*R,(oy+r*0.5)*R);c.closePath();c.fill();});},
+  2:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';c.beginPath();c.arc(0,R*0.1,R*0.45,Math.PI*0.07,Math.PI*0.93);c.closePath();c.fill();c.fillRect(-R*0.48,R*0.1,R*0.96,R*0.13);c.strokeStyle='rgba(255,255,255,0.95)';c.lineWidth=R*0.09;c.lineCap='round';[-.2,0,.2].forEach(x=>{c.beginPath();c.moveTo(x*R,-R*0.05);c.quadraticCurveTo((x+.14)*R,-R*0.28,x*R,-R*0.45);c.stroke();});},
+  3:(c,R)=>{c.strokeStyle='rgba(255,255,255,0.95)';c.lineWidth=R*0.1;c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(-R*0.55,R*0.08);c.lineTo(-R*0.3,R*0.08);c.lineTo(-R*0.18,-R*0.22);c.lineTo(0,R*0.35);c.lineTo(R*0.18,-R*0.08);c.lineTo(R*0.3,R*0.08);c.lineTo(R*0.55,R*0.08);c.stroke();c.fillStyle='rgba(255,255,255,0.95)';const s=R*0.22;c.save();c.translate(R*0.3,-R*0.38);c.scale(0.7,0.7);c.beginPath();c.moveTo(0,s*0.3);c.bezierCurveTo(-s*.1,-s*.15,-s,-s*.1,-s,s*.35);c.bezierCurveTo(-s,s*.8,0,s,0,s*1.4);c.bezierCurveTo(0,s,s,s*.8,s,s*.35);c.bezierCurveTo(s,-s*.1,s*.1,-s*.15,0,s*.3);c.fill();c.restore();},
+  4:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';c.beginPath();c.moveTo(-R*0.05,-R*0.35);c.lineTo(-R*0.55,-R*0.18);c.lineTo(-R*0.55,R*0.32);c.lineTo(-R*0.05,R*0.18);c.closePath();c.fill();c.beginPath();c.moveTo(R*0.05,-R*0.35);c.lineTo(R*0.55,-R*0.18);c.lineTo(R*0.55,R*0.32);c.lineTo(R*0.05,R*0.18);c.closePath();c.fill();c.fillRect(-R*0.04,-R*0.38,R*0.08,R*0.6);c.save();c.translate(R*0.22,R*0.4);c.rotate(-0.45);c.fillRect(-R*0.06,-R*0.22,R*0.12,R*0.36);c.beginPath();c.moveTo(-R*0.06,R*0.14);c.lineTo(0,R*0.28);c.lineTo(R*0.06,R*0.14);c.fill();c.restore();},
+  5:(c,R)=>{c.strokeStyle='rgba(255,255,255,0.95)';c.lineWidth=R*0.11;c.lineCap='round';c.beginPath();c.arc(0,-R*0.12,R*0.32,0,Math.PI*2);c.stroke();c.beginPath();c.moveTo(0,R*0.2);c.lineTo(0,R*0.55);c.stroke();c.beginPath();c.moveTo(-R*0.2,R*0.38);c.lineTo(R*0.2,R*0.38);c.stroke();c.fillStyle='rgba(255,255,255,0.95)';c.fillRect(-R*0.55,-R*0.52,R*0.36,R*0.09);c.fillRect(-R*0.55,-R*0.38,R*0.36,R*0.09);},
+  6:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';c.beginPath();c.moveTo(0,-R*0.5);c.bezierCurveTo(R*0.5,-R*0.1,R*0.48,R*0.22,0,R*0.5);c.bezierCurveTo(-R*0.48,R*0.22,-R*0.5,-R*0.1,0,-R*0.5);c.fill();c.fillRect(-R*0.62,-R*0.22,R*0.32,R*0.12);c.fillRect(-R*0.44,-R*0.38,R*0.11,R*0.18);},
+  7:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';c.beginPath();c.arc(0,0,R*0.28,0,Math.PI*2);c.fill();for(let i=0;i<8;i++){c.save();c.rotate(i*Math.PI/4);c.fillRect(-R*0.055,R*0.32,R*0.11,R*0.22);c.restore();}c.strokeStyle='rgba(255,255,255,0.95)';c.lineWidth=R*0.09;c.beginPath();c.arc(0,0,R*0.26,Math.PI*1.28,Math.PI*1.72);c.stroke();c.fillRect(-R*0.045,-R*0.32,R*0.09,R*0.2);},
+  8:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';[[-.52,R*0.18,.2,R*0.24],[-.26,-R*0.08,.2,R*0.5],[0,-R*0.28,.2,R*0.7],[.26,-R*0.46,.2,R*0.88]].forEach(([x,y,w,h])=>{c.fillRect(x*R,y,w*R,h);});c.fillRect(-R*0.6,R*0.42,R*1.1,R*0.1);c.beginPath();c.moveTo(R*0.5,-R*0.6);c.lineTo(R*0.68,-R*0.4);c.lineTo(R*0.32,-R*0.4);c.closePath();c.fill();c.fillRect(R*0.44,-R*0.62,R*0.11,R*0.25);},
+  9:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';function hex(cx,cy,r){c.beginPath();for(let i=0;i<6;i++){c.lineTo(cx+r*Math.cos(i*Math.PI/3-Math.PI/6),cy+r*Math.sin(i*Math.PI/3-Math.PI/6));}c.closePath();c.fill();}hex(-R*0.28,-R*0.2,R*0.28);hex(R*0.28,-R*0.2,R*0.28);hex(0,R*0.28,R*0.28);},
+  10:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';c.fillRect(-R*0.06,-R*0.62,R*0.12,R*1.24);c.fillRect(-R*0.62,-R*0.06,R*1.24,R*0.12);[0,Math.PI/2,Math.PI,Math.PI*1.5].forEach(a=>{c.save();c.rotate(a);c.beginPath();c.moveTo(0,-R*0.62);c.lineTo(-R*0.18,-R*0.38);c.lineTo(R*0.18,-R*0.38);c.closePath();c.fill();c.restore();});},
+  11:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';[[-.55,R*0.1,.2,R*0.32],[-.5,-R*0.12,.16,R*0.54],[-.22,-R*0.42,.26,R*0.74],[.1,-R*0.1,.2,R*0.42],[.32,-R*0.32,.24,R*0.74]].forEach(([x,y,w,h])=>{c.fillRect(x*R,y,w*R,h);});c.fillRect(-R*0.62,R*0.42,R*1.24,R*0.1);},
+  12:(c,R)=>{c.strokeStyle='rgba(255,255,255,0.95)';c.lineWidth=R*0.18;c.lineCap='round';c.beginPath();c.moveTo(0,0);c.bezierCurveTo(-R*0.12,-R*0.44,-R*0.7,-R*0.44,-R*0.55,0);c.bezierCurveTo(-R*0.38,R*0.44,R*0.38,R*0.44,R*0.55,0);c.bezierCurveTo(R*0.7,-R*0.44,R*0.12,-R*0.44,0,0);c.stroke();},
+  13:(c,R)=>{c.strokeStyle='rgba(255,255,255,0.95)';c.lineWidth=R*0.1;c.lineCap='round';c.beginPath();c.moveTo(-R*0.62,0);c.quadraticCurveTo(0,-R*0.52,R*0.62,0);c.quadraticCurveTo(0,R*0.52,-R*0.62,0);c.stroke();c.fillStyle='rgba(255,255,255,0.95)';c.beginPath();c.arc(0,0,R*0.28,0,Math.PI*2);c.fill();c.fillStyle='#3F7E44';c.beginPath();c.arc(0,0,R*0.13,0,Math.PI*2);c.fill();c.fillStyle='rgba(255,255,255,0.95)';},
+  14:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';c.beginPath();c.ellipse(-R*0.08,-R*0.08,R*0.38,R*0.2,0,0,Math.PI*2);c.fill();c.beginPath();c.moveTo(R*0.3,-R*0.08);c.lineTo(R*0.6,-R*0.28);c.lineTo(R*0.6,R*0.12);c.closePath();c.fill();c.strokeStyle='rgba(255,255,255,0.95)';c.lineWidth=R*0.09;c.lineCap='round';for(let w=0;w<2;w++){c.beginPath();c.moveTo(-R*0.55,R*0.3+w*R*0.2);for(let i=0;i<3;i++){c.quadraticCurveTo((-R*0.36+i*R*0.4),R*0.2+w*R*0.2,(-R*0.15+i*R*0.4),R*0.3+w*R*0.2);}c.stroke();}},
+  15:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';c.beginPath();c.arc(0,-R*0.14,R*0.38,0,Math.PI*2);c.fill();c.fillRect(-R*0.09,R*0.22,R*0.18,R*0.3);c.strokeStyle='rgba(255,255,255,0.95)';c.lineWidth=R*0.07;c.lineCap='round';[[R*0.38,-R*0.55],[R*0.58,-R*0.48]].forEach(([bx,by])=>{c.beginPath();c.moveTo(bx-R*0.1,by);c.quadraticCurveTo(bx,by-R*0.14,bx+R*0.1,by);c.stroke();});},
+  16:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';c.beginPath();c.ellipse(-R*0.04,R*0.04,R*0.3,R*0.16,Math.PI*0.12,0,Math.PI*2);c.fill();c.beginPath();c.moveTo(-R*0.1,R*0.02);c.bezierCurveTo(-R*0.52,-R*0.42,-R*0.58,-R*0.14,-R*0.32,R*0.08);c.closePath();c.fill();c.beginPath();c.arc(R*0.22,-R*0.12,R*0.13,0,Math.PI*2);c.fill();c.strokeStyle='rgba(255,255,255,0.95)';c.lineWidth=R*0.07;c.beginPath();c.moveTo(R*0.05,R*0.22);c.lineTo(R*0.28,R*0.46);c.stroke();[R*0.12,R*0.22].forEach(t=>{c.beginPath();c.arc(R*0.05+t,R*0.22+t*0.85,R*0.08,0,Math.PI*2);c.fill();});},
+  17:(c,R)=>{c.fillStyle='rgba(255,255,255,0.95)';for(let i=0;i<6;i++){c.save();c.rotate(i*Math.PI/3);c.beginPath();c.ellipse(0,-R*0.3,R*0.14,R*0.26,0,0,Math.PI*2);c.fill();c.restore();}c.fillStyle='#19486A';c.beginPath();c.arc(0,0,R*0.16,0,Math.PI*2);c.fill();c.fillStyle='rgba(255,255,255,0.95)';},
+};
+
+
+// ═══════════════════════════════════════
+//  DRAW — SDG Sphere Bubbles
+// ═══════════════════════════════════════
+function drawBubble(x,y,goalId,scale=1,opacity=1){
+  const g=SDG_GOALS.find(g=>g.id===goalId);if(!g)return;
+  ctx.save();ctx.globalAlpha=opacity;ctx.translate(x,y);ctx.scale(scale,scale);
+  const R=BUBBLE_R;
+  const hex=g.color.replace('#','');
+  const cr=parseInt(hex.slice(0,2),16),cg=parseInt(hex.slice(2,4),16),cb=parseInt(hex.slice(4,6),16);
+  const lighter=`rgb(${Math.min(255,cr+80)},${Math.min(255,cg+80)},${Math.min(255,cb+80)})`;
+  const darker=`rgb(${Math.max(0,cr-60)},${Math.max(0,cg-60)},${Math.max(0,cb-60)})`;
+  const sphereGrad=ctx.createRadialGradient(-R*0.32,-R*0.32,R*0.05,R*0.05,R*0.05,R*1.05);
+  sphereGrad.addColorStop(0,lighter);sphereGrad.addColorStop(0.35,g.color);sphereGrad.addColorStop(1,darker);
+  ctx.save();ctx.shadowColor='rgba(0,0,0,0.22)';ctx.shadowBlur=6;ctx.shadowOffsetX=2;ctx.shadowOffsetY=3;
+  ctx.beginPath();ctx.arc(0,0,R,0,Math.PI*2);ctx.fillStyle=sphereGrad;ctx.fill();ctx.restore();
+  ctx.save();ctx.beginPath();ctx.arc(0,0,R*0.8,0,Math.PI*2);ctx.clip();
+  ctx.fillStyle='rgba(255,255,255,0.95)';ctx.strokeStyle='rgba(255,255,255,0.95)';ctx.lineJoin='round';ctx.lineCap='round';
+  const draw=SDG_ICON_DRAWERS[goalId];if(draw){try{draw(ctx,R);}catch(e){}}ctx.restore();
+  const gloss=ctx.createRadialGradient(-R*0.32,-R*0.38,R*0.01,-R*0.08,-R*0.15,R*0.72);
+  gloss.addColorStop(0,'rgba(255,255,255,0.75)');gloss.addColorStop(0.3,'rgba(255,255,255,0.25)');gloss.addColorStop(0.7,'rgba(255,255,255,0.05)');gloss.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.beginPath();ctx.arc(0,0,R,0,Math.PI*2);ctx.fillStyle=gloss;ctx.fill();
+  const spec=ctx.createRadialGradient(-R*0.36,-R*0.4,0,-R*0.36,-R*0.4,R*0.25);
+  spec.addColorStop(0,'rgba(255,255,255,0.9)');spec.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.beginPath();ctx.arc(0,0,R,0,Math.PI*2);ctx.fillStyle=spec;ctx.fill();
+  const shadow=ctx.createRadialGradient(R*0.2,R*0.3,R*0.1,0,0,R);
+  shadow.addColorStop(0,'rgba(0,0,0,0)');shadow.addColorStop(1,'rgba(0,0,0,0.28)');
+  ctx.beginPath();ctx.arc(0,0,R,0,Math.PI*2);ctx.fillStyle=shadow;ctx.fill();
+  ctx.restore();
+}
+
+// ─────────────────────────────────────────────────────
+// DRAW CANVAS BUTTONS: Swap + Pause (+ info bubbles)
+// ─────────────────────────────────────────────────────
+
+// Draws a pill-shaped "info bubble" with icon+label, centered at (cx,cy)
+function drawInfoBubble(cx,cy,icon,value,label,color,isAlert=false){
+  const r=28;// radius for circle
+  ctx.save();ctx.translate(cx,cy);
+
+  // Outer ring glow
+  if(isAlert){
+    ctx.shadowColor='rgba(255,60,60,0.6)';ctx.shadowBlur=16;
+  }else{
+    ctx.shadowColor=color+'99';ctx.shadowBlur=12;
+  }
+  // Sphere base
+  const hex=(isAlert?'#ef4444':color).replace('#','');
+  const cr=parseInt(hex.slice(0,2),16),cg2=parseInt(hex.slice(2,4),16),cb=parseInt(hex.slice(4,6),16);
+  const lighter=`rgb(${Math.min(255,cr+90)},${Math.min(255,cg2+90)},${Math.min(255,cb+90)})`;
+  const darker=`rgb(${Math.max(0,cr-50)},${Math.max(0,cg2-50)},${Math.max(0,cb-50)})`;
+  const bg=ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.05,0,0,r*1.05);
+  bg.addColorStop(0,lighter);bg.addColorStop(0.4,isAlert?'#ef4444':color);bg.addColorStop(1,darker);
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=bg;ctx.fill();
+  ctx.shadowBlur=0;
+
+  // Gloss
+  const gl=ctx.createRadialGradient(-r*0.3,-r*0.35,0,0,-r*0.1,r*0.8);
+  gl.addColorStop(0,'rgba(255,255,255,0.7)');gl.addColorStop(0.4,'rgba(255,255,255,0.15)');gl.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=gl;ctx.fill();
+
+  // White border ring
+  ctx.strokeStyle='rgba(255,255,255,0.55)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(0,0,r-1,0,Math.PI*2);ctx.stroke();
+
+  // Icon
+  ctx.font=`${r*0.48}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(icon,0,-r*0.22);
+  // Value — auto-shrink font if text is wide
+  ctx.fillStyle='white';ctx.shadowColor='rgba(0,0,0,0.4)';ctx.shadowBlur=3;
+  let fontSize=r*0.42;
+  ctx.font=`bold ${fontSize}px 'Fredoka One',cursive`;
+  // Shrink until text fits inside bubble diameter
+  while(ctx.measureText(value).width>r*1.55&&fontSize>r*0.22){
+    fontSize-=1;ctx.font=`bold ${fontSize}px 'Fredoka One',cursive`;
+  }
+  ctx.fillText(value,0,r*0.36);
+  ctx.shadowBlur=0;
+
+  // Floating label below bubble
+  ctx.font=`bold ${r*0.3}px 'Nunito',sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,0.85)';ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=4;
+  ctx.fillText(label,0,r+10);
+  ctx.shadowBlur=0;
+
+  ctx.restore();
+}
+
+function drawCanvasButton(cx,cy,icon,label,color,hovered,active=false){
+  const r=26;
+  ctx.save();ctx.translate(cx,cy);
+
+  const scale=hovered?1.1:1;
+  ctx.scale(scale,scale);
+
+  // Glow
+  ctx.shadowColor=color+'88';ctx.shadowBlur=hovered?20:10;
+  // Base circle
+  const bg=ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.05,0,0,r*1.05);
+  if(active){
+    bg.addColorStop(0,'#a0ffa0');bg.addColorStop(0.4,'#22c55e');bg.addColorStop(1,'#166534');
+  }else{
+    const hex=color.replace('#','');
+    const cr=parseInt(hex.slice(0,2),16),cg2=parseInt(hex.slice(2,4),16),cb=parseInt(hex.slice(4,6),16);
+    bg.addColorStop(0,`rgb(${Math.min(255,cr+80)},${Math.min(255,cg2+80)},${Math.min(255,cb+80)})`);
+    bg.addColorStop(0.4,color);
+    bg.addColorStop(1,`rgb(${Math.max(0,cr-60)},${Math.max(0,cg2-60)},${Math.max(0,cb-60)})`);
+  }
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=bg;ctx.fill();
+  ctx.shadowBlur=0;
+
+  // Gloss
+  const gl=ctx.createRadialGradient(-r*0.3,-r*0.35,0,0,-r*0.1,r*0.8);
+  gl.addColorStop(0,'rgba(255,255,255,0.65)');gl.addColorStop(0.4,'rgba(255,255,255,0.1)');gl.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=gl;ctx.fill();
+
+  // Border
+  ctx.strokeStyle=hovered?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.5)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(0,0,r-1,0,Math.PI*2);ctx.stroke();
+
+  // Icon
+  ctx.font=`${r*0.65}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(icon,0,1);
+
+  // Label below
+  ctx.scale(1/scale,1/scale);
+  ctx.font=`bold ${r*0.32}px 'Nunito',sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=4;
+  ctx.fillText(label,0,r+11);
+  ctx.shadowBlur=0;
+
+  ctx.restore();
+}
+
+// NEXT BUBBLE preview with "NEXT" label - drawn inside a bubble-like widget
+function drawNextBubbleWidget(cx,cy){
+  const r=28;
+  ctx.save();ctx.translate(cx,cy);
+
+  // Background sphere
+  const bg=ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.05,0,0,r*1.05);
+  bg.addColorStop(0,'rgba(60,80,150,0.95)');bg.addColorStop(0.5,'rgba(20,40,100,0.9)');bg.addColorStop(1,'rgba(5,10,40,0.95)');
+  ctx.shadowColor='rgba(30,80,200,0.5)';ctx.shadowBlur=12;
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=bg;ctx.fill();
+  ctx.shadowBlur=0;
+
+  // Dashed border
+  ctx.setLineDash([4,3]);ctx.strokeStyle='rgba(100,160,255,0.6)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(0,0,r-1,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+
+  // Gloss
+  const gl=ctx.createRadialGradient(-r*0.3,-r*0.35,0,0,-r*0.1,r*0.8);
+  gl.addColorStop(0,'rgba(255,255,255,0.45)');gl.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=gl;ctx.fill();
+
+  // Small "NEXT" label inside
+  ctx.font=`bold 8px 'Nunito',sans-serif`;
+  ctx.fillStyle='rgba(150,200,255,0.9)';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('NEXT',-0,-r*0.55);
+
+  // Draw the next bubble (smaller)
+  ctx.save();ctx.scale(0.58,0.58);
+  drawBubble(0,r*0.15,nextGoal.id);
+  ctx.restore();
+
+  ctx.font=`bold 8px 'Nunito',sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,0.85)';ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=4;
+  ctx.fillText('Next Up',0,r+11);
+  ctx.shadowBlur=0;
+
+  ctx.restore();
+}
+
+// ─────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────
+const LAUNCH_Y=CH-100; // launcher Y position (moved up to allow bottom UI)
+
+function render(){
+  // Sky
+  const skyGrad=ctx.createLinearGradient(0,0,0,CH);
+  skyGrad.addColorStop(0,'#a8c8e8');skyGrad.addColorStop(0.4,'#c2daf0');skyGrad.addColorStop(1,'#d8eaf6');
+  ctx.fillStyle=skyGrad;ctx.fillRect(0,0,CW,CH);
+  ctx.fillStyle='rgba(20,80,160,0.18)';ctx.fillRect(0,0,CW,6);
+
+  // Bottom UI panel (separate zone from game area)
+  const panelY=CH-80;
+  const panelGrad=ctx.createLinearGradient(0,panelY,0,CH);
+  panelGrad.addColorStop(0,'rgba(18,40,100,0.92)');panelGrad.addColorStop(1,'rgba(8,20,60,0.98)');
+  ctx.fillStyle=panelGrad;ctx.fillRect(0,panelY,CW,CH-panelY);
+  ctx.strokeStyle='rgba(100,160,255,0.35)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(0,panelY);ctx.lineTo(CW,panelY);ctx.stroke();
+
+  // Grid bubbles
+  grid.forEach(row=>row.forEach(b=>{if(b)drawBubble(b.x,b.y,b.goalId);}));
+  poppingBubbles=poppingBubbles.filter(b=>{b.popping=(b.popping||0)+.1;if(b.popping<1){drawBubble(b.x,b.y,b.goalId,1+b.popping,1-b.popping);return true;}return false;});
+  fallingBubbles=fallingBubbles.filter(b=>{b.y+=(b.vy||2);b.vy=(b.vy||2)+.5;if(b.y<CH+BUBBLE_R){drawBubble(b.x,b.y,b.goalId);return true;}return false;});
+  if(projectile)drawBubble(projectile.x,projectile.y,projectile.goalId);
+
+  // Aim arrow
+  const startX=CW/2,startY=LAUNCH_Y;
+  if(!isShooting&&gameRunning){
+    const dx=mousePos.x-startX,dy=mousePos.y-startY;
+    let angle=Math.atan2(dy,dx);
+    if(angle>-0.1)angle=-0.1;if(angle<-Math.PI+0.1)angle=-Math.PI+0.1;
+    const segs=[];let cx=startX,cy=startY,rem=250,ca=angle;
+    segs.push({x:cx,y:cy});
+    for(let i=0;i<3;i++){
+      const vx=Math.cos(ca),vy=Math.sin(ca);
+      let dtw=vx>0?(CW-BUBBLE_R-cx)/vx:vx<0?(BUBBLE_R-cx)/vx:Infinity;
+      const step=Math.min(rem,dtw);cx+=vx*step;cy+=vy*step;rem-=step;segs.push({x:cx,y:cy});
+      if(step===dtw&&rem>0)ca=Math.atan2(vy,-vx);else break;
+    }
+    const t=Date.now()/120;
+    for(let s=0;s<segs.length-1;s++){
+      const p1=segs[s],p2=segs[s+1],sdx=p2.x-p1.x,sdy=p2.y-p1.y,slen=Math.hypot(sdx,sdy);
+      ctx.beginPath();ctx.setLineDash([10,8]);ctx.lineDashOffset=-(t%18);
+      ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);
+      ctx.strokeStyle='rgba(30,80,180,.65)';ctx.lineWidth=3;ctx.lineCap='round';ctx.stroke();ctx.setLineDash([]);
+      const steps=Math.floor(slen/40);
+      for(let k=1;k<=steps;k++){const frac=k/(steps+1);ctx.beginPath();ctx.arc(p1.x+sdx*frac,p1.y+sdy*frac,3.5,0,Math.PI*2);ctx.fillStyle=`rgba(30,80,180,${.3+frac*.5})`;ctx.fill();}
+    }
+    const last=segs[segs.length-1],prev=segs[segs.length-2],aA=Math.atan2(last.y-prev.y,last.x-prev.x),aL=14;
+    ctx.beginPath();ctx.moveTo(last.x,last.y);
+    ctx.lineTo(last.x-aL*Math.cos(aA-Math.PI/6),last.y-aL*Math.sin(aA-Math.PI/6));
+    ctx.lineTo(last.x-aL*Math.cos(aA+Math.PI/6),last.y-aL*Math.sin(aA+Math.PI/6));
+    ctx.closePath();ctx.fillStyle='rgba(30,80,180,.9)';ctx.shadowColor='rgba(30,80,180,.5)';ctx.shadowBlur=8;ctx.fill();ctx.shadowBlur=0;
+  }
+
+  // Launcher platform
+  ctx.save();
+  const platW=60,platH=12,platR=6;
+  ctx.fillStyle='rgba(30,80,160,0.35)';
+  ctx.beginPath();
+  ctx.moveTo(startX-platW/2+platR,startY+BUBBLE_R+3);
+  ctx.lineTo(startX+platW/2-platR,startY+BUBBLE_R+3);
+  ctx.quadraticCurveTo(startX+platW/2,startY+BUBBLE_R+3,startX+platW/2,startY+BUBBLE_R+3+platR);
+  ctx.lineTo(startX+platW/2,startY+BUBBLE_R+3+platH-platR);
+  ctx.quadraticCurveTo(startX+platW/2,startY+BUBBLE_R+3+platH,startX+platW/2-platR,startY+BUBBLE_R+3+platH);
+  ctx.lineTo(startX-platW/2+platR,startY+BUBBLE_R+3+platH);
+  ctx.quadraticCurveTo(startX-platW/2,startY+BUBBLE_R+3+platH,startX-platW/2,startY+BUBBLE_R+3+platH-platR);
+  ctx.lineTo(startX-platW/2,startY+BUBBLE_R+3+platR);
+  ctx.quadraticCurveTo(startX-platW/2,startY+BUBBLE_R+3,startX-platW/2+platR,startY+BUBBLE_R+3);
+  ctx.closePath();ctx.fill();ctx.restore();
+
+  // Current shooter bubble
+  if(!isShooting)drawBubble(startX,startY,currentGoal.id);
+
+  // ── BOTTOM UI: Info bubbles + Action buttons ──
+  // Layout (left to right in panel):
+  // [SWAP] [SHOTS BUBBLE] [TIMER BUBBLE] [NEXT] [PAUSE]
+  const by=CH-40; // vertical center of panel buttons
+
+  // Timer bubble (center-left)
+  const m=Math.floor(timeLeft/60),sec=timeLeft%60;
+  const timerStr=m>0?`${m}:${String(sec).padStart(2,'0')}`:String(sec)+'s';
+  const timerAlert=timeLeft<=10;
+  const timerColor=timeLeft<=10?'#ef4444':timeLeft<=30?'#f59e0b':'#22d3ee';
+  drawInfoBubble(CW/2-36,by,'⏱',timerStr,'Time',timerColor,timerAlert);
+
+  // Shots bubble
+  const shotsAlert=shots<8;
+  const shotsColor=shotsAlert?'#ef4444':'#a855f7';
+  drawInfoBubble(CW/2+36,by,'🎯',String(shots),'Shots',shotsColor,shotsAlert);
+
+  // Swap button (left)
+  drawCanvasButton(BTN_SWAP.x+BTN_SWAP.w/2,by,'🔄','Swap','#10b981',hoverSwap);
+
+  // Next bubble widget (right of center)
+  drawNextBubbleWidget(CW-74,by);
+
+  // Pause button (far right)
+  drawCanvasButton(BTN_PAUSE.x+BTN_PAUSE.w/2,by,'⏸','Pause','#6366f1',hoverPause);
+}
+
+
+// ═══════════════════════════════════════
+//  PHYSICS
+// ═══════════════════════════════════════
+function findMatches(r,c,goalId){
+  const matches=[],queue=[{r,c}],vis=new Set([`${r},${c}`]);
+  while(queue.length){const{r:rr,c:cc}=queue.shift();matches.push({r:rr,c:cc});for(const[nr,nc]of getNeighbors(rr,cc)){const k=`${nr},${nc}`;if(nr>=0&&nr<GRID_ROWS&&nc>=0&&nc<GRID_COLS&&!vis.has(k)&&grid[nr][nc]&&grid[nr][nc].goalId===goalId){vis.add(k);queue.push({r:nr,c:nc});}}}
+  return matches;
+}
+function findFloating(){
+  const con=new Set(),q=[];
+  for(let c=0;c<GRID_COLS;c++)if(grid[0][c]){con.add(`0,${c}`);q.push({r:0,c});}
+  while(q.length){const{r,c}=q.shift();for(const[nr,nc]of getNeighbors(r,c)){const k=`${nr},${nc}`;if(nr>=0&&nr<GRID_ROWS&&nc>=0&&nc<GRID_COLS&&!con.has(k)&&grid[nr][nc]){con.add(k);q.push({r:nr,c:nc});}}}
+  const fl=[];for(let r=0;r<GRID_ROWS;r++)for(let c=0;c<GRID_COLS;c++)if(grid[r][c]&&!con.has(`${r},${c}`))fl.push({r,c});return fl;
+}
+function isGridEmpty(){for(let r=0;r<GRID_ROWS;r++)for(let c=0;c<GRID_COLS;c++)if(grid[r][c])return false;return true;}
+
+function autoSaveScore(){
+  if(!playerName||score<=0)return;
+  const stars=getStarsFromClear();
+  const entry={
+    name:playerName,
+    score,
+    level:currentLevel,
+    stars,
+    timeLeft, // seconds remaining when they won
+    shots,    // shots remaining
+    date:new Date().toLocaleDateString(),
+    time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
+    ts:Date.now()
+  };
+  const data=getLbData();
+  data.push(entry);
+  data.sort((a,b)=>b.score-a.score);
+  saveLbData(data.slice(0,200));
+}
+
+function showYouWin(){
+  if(!gameRunning)return;
+  gameRunning=false;stopTimer();sndStar();
+  const remaining=[];
+  for(let r=0;r<GRID_ROWS;r++)for(let c=0;c<GRID_COLS;c++)if(grid[r][c])remaining.push({r,c});
+  remaining.sort((a,b)=>b.r-a.r||(a.c-b.c));
+  let delay=0;
+  remaining.forEach((pos,i)=>{
+    setTimeout(()=>{const b=grid[pos.r][pos.c];if(b){poppingBubbles.push({...b,popping:0});grid[pos.r][pos.c]=null;}if(i%4===0)sndPop(3);},delay);delay+=40;
+  });
+  const cascadeMs=remaining.length*40+700;
+  setTimeout(()=>{
+    sndStar();
+    const ballBonus=shots*50;score+=ballBonus;clearedBubbles=totalBubbles;
+    document.getElementById('winStars').textContent='⭐⭐⭐';
+    document.getElementById('winScore').textContent=score.toLocaleString()+' pts';
+    document.getElementById('winBallsLeft').textContent='🎁 '+shots+' shots remaining = +'+ballBonus+' bonus pts!';
+    shots=0;updateUI();
+    // Unlock next level
+    setUnlocked(currentLevel+1);
+    maxUnlocked=getUnlocked();
+    // Save score ONLY on win
+    autoSaveScore();
+    // Update Next Level button label
+    const nextLv=currentLevel+1;
+    const winNextBtn=document.getElementById('winNextBtn');
+    if(winNextBtn){
+      if(nextLv<=3){winNextBtn.textContent='Level '+nextLv+' 🚀';winNextBtn.disabled=false;}
+      else{winNextBtn.textContent='🏆 All Done!';winNextBtn.onclick=()=>returnToMenu();}
+    }
+    openModal('youWinOverlay');
+  },cascadeMs);
+}
+
+function update(){
+  if(!projectile)return;
+  const p=projectile;p.x+=p.vx;p.y+=p.vy;
+  if(p.x<BUBBLE_R||p.x>CW-BUBBLE_R)p.vx*=-1;
+  let col=false,hitR=-1,hitC=-1;
+  if(p.y<BUBBLE_R){col=true;}
+  else{outer:for(let r=0;r<GRID_ROWS;r++)for(let c=0;c<GRID_COLS;c++){const b=grid[r][c];if(b&&Math.hypot(p.x-b.x,p.y-b.y)<BUBBLE_R*1.7){col=true;hitR=r;hitC=c;break outer;}}}
+  if(col){
+    let tR,tC;
+    if(hitR===-1){const pos=getGridPos(p.x,p.y);tR=0;tC=Math.max(0,Math.min(GRID_COLS-1,pos.col));}
+    else{const nb=getNeighbors(hitR,hitC);let md=Infinity;tR=hitR;tC=hitC;for(const[nr,nc]of nb){if(nr>=0&&nr<GRID_ROWS&&nc>=0&&nc<GRID_COLS&&!grid[nr][nc]){const{x,y}=getBubbleCoords(nr,nc);const d=Math.hypot(p.x-x,p.y-y);if(d<md){md=d;tR=nr;tC=nc;}}}}
+    if(grid[tR][tC]){const pos=getGridPos(p.x,p.y);tR=Math.max(0,Math.min(GRID_ROWS-1,pos.row));tC=Math.max(0,Math.min(GRID_COLS-1,pos.col));if(grid[tR][tC]){outer2:for(let r=0;r<GRID_ROWS;r++)for(let c=0;c<GRID_COLS;c++)if(!grid[r][c]){tR=r;tC=c;break outer2;}}}
+    const{x,y}=getBubbleCoords(tR,tC);grid[tR][tC]={x,y,goalId:p.goalId};
+    const matches=findMatches(tR,tC,p.goalId);
+    if(matches.length>=3){
+      sndPop(matches.length);comboCount++;clearedBubbles+=matches.length;
+      matches.forEach(m=>{const b=grid[m.r][m.c];if(b)poppingBubbles.push({...b,popping:0});grid[m.r][m.c]=null;});
+      const fl=findFloating();
+      if(fl.length>0){
+        sndFall();clearedBubbles+=fl.length;
+        fl.forEach(f=>{const b=grid[f.r][f.c];if(b)fallingBubbles.push({...b,vy:2});grid[f.r][f.c]=null;});
+        setTimeout(()=>{if(isGridEmpty()&&gameRunning)showYouWin();},800);
+      }
+      const isMission=p.goalId===missionGoal.id;
+      let mult=1;if(isMission)mult*=2;
+      const comboBuff=Math.min(4,1+(comboCount-1)*0.5);
+      score+=Math.floor((matches.length*30+fl.length*60)*mult*comboBuff);
+      updateUI();
+      const goal=SDG_GOALS.find(g=>g.id===p.goalId);if(goal)showGoalPopup(goal,comboCount);
+      if(isMission)missionGoal=getRandGoal();
+      updateUI();
+      if(isGridEmpty()&&gameRunning)setTimeout(()=>showYouWin(),400);
+    }else{comboCount=0;}
+    currentGoal=nextGoal;
+    nextGoal=getRandGoal();
+    // Re-validate currentGoal: if its type no longer exists on grid, swap for a valid one
+    const onGridNow=new Set();
+    grid.forEach(row=>row.forEach(b=>{if(b)onGridNow.add(b.goalId);}));
+    if(onGridNow.size>0&&!onGridNow.has(currentGoal.id)){
+      currentGoal=getRandGoal();
+    }
+    projectile=null;isShooting=false;
+    if(shots<=0&&gameRunning){gameRunning=false;setTimeout(showGameOver,400);}
+  }
+  if(p&&(p.y>CH+100||p.y<-100)){comboCount=0;currentGoal=nextGoal;nextGoal=getRandGoal();projectile=null;isShooting=false;}
+}
+
+// ── SHOOT (only fires if click is NOT in bottom panel) ──
+const PANEL_Y=CH-80;
+
+function shoot(){
+  if(!gameRunning||isShooting||shots<=0)return;
+  const startX=CW/2,startY=LAUNCH_Y;
+  // Don't shoot if clicking inside bottom panel
+  if(mousePos.y>PANEL_Y)return;
+  const dx=mousePos.x-startX,dy=mousePos.y-startY,dist=Math.hypot(dx,dy);
+  if(dist<BUBBLE_R*2){swapBubbles();return;}
+  let angle=Math.atan2(dy,dx);if(angle>-0.1)angle=-0.1;if(angle<-Math.PI+0.1)angle=-Math.PI+0.1;
+  projectile={x:startX,y:startY,vx:Math.cos(angle)*14,vy:Math.sin(angle)*14,goalId:currentGoal.id};
+  isShooting=true;shots--;updateUI();sndShoot();
+}
+
+// ── HIT TEST canvas buttons ──
+function getCanvasPos(e,isTouch=false){
+  const r=canvas.getBoundingClientRect();
+  const sx=CW/r.width,sy=CH/r.height;
+  if(isTouch)return{x:(e.changedTouches[0].clientX-r.left)*sx,y:(e.changedTouches[0].clientY-r.top)*sy};
+  return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
+}
+function inBtn(pos,btn){return pos.x>=btn.x&&pos.x<=btn.x+btn.w&&pos.y>=btn.y&&pos.y<=btn.y+btn.h;}
+function handleCanvasClick(pos){
+  if(inBtn(pos,BTN_SWAP)){swapBubbles();return true;}
+  if(inBtn(pos,BTN_PAUSE)){if(gameRunning)pauseGame();return true;}
+  return false;
+}
+
+
+// ═══════════════════════════════════════
+//  POPUPS
+// ═══════════════════════════════════════
+function showGoalPopup(goal,combo=1){
+  const popup=document.getElementById('goalPopup');
+  document.getElementById('goalPopupTitle').textContent=`Goal ${goal.id}: ${goal.title}`;
+  document.getElementById('goalPopupDesc').textContent=combo>1?`🔥 COMBO ×${combo}! Keep it up!`:goal.desc;
+  const ic=document.getElementById('goalPopupIcon');
+  ic.style.background=goal.color;ic.style.borderRadius='12px';ic.style.boxShadow=`0 0 16px ${goal.color}`;
+  ic.innerHTML=combo>2?'🔥':`<span style="font-family:'Arial Black',sans-serif;font-size:22px;font-weight:900;color:white">${goal.id}</span>`;
+  document.getElementById('goalPopupInner').style.borderColor=`${goal.color}88`;
+  document.getElementById('goalPopupInner').style.boxShadow=`0 0 28px ${goal.color}44`;
+  popup.style.display='block';
+  // Pause the countdown timer while the player reads about the SDG goal
+  stopTimer();
+  if(goalPopupTimer)clearTimeout(goalPopupTimer);
+  goalPopupTimer=setTimeout(()=>{
+    popup.style.display='none';
+    // Resume timer only if game is still running
+    if(gameRunning)startTimerResume();
+  },2000);
+}
+
+// Resume timer without resetting timeLeft
+function startTimerResume(){
+  stopTimer();
+  timerInterval=setInterval(()=>{
+    if(!gameRunning)return;
+    timeLeft--;
+    if(timeLeft<=0){
+      stopTimer();timeLeft=0;
+      gameRunning=false;showTimeUp();
+    }
+  },1000);
+}
+function showGameOver(){
+  sndGameOver();stopTimer();
+  // Do NOT save score on game over - only wins count
+  const stars=getStars(score);const s=['☆','☆','☆'];for(let i=0;i<stars;i++)s[i]='⭐';
+  document.getElementById('gameoverStars').textContent=s.join(' ');
+  document.getElementById('gameoverScore').innerHTML=`Got <strong style="color:var(--gold)">${stars} ⭐</strong> · <strong style="color:var(--purple)">${score} pts!</strong>`;
+  openModal('gameOverOverlay');
+}
+
+
+// ═══════════════════════════════════════
+//  ABOUT GRID
+// ═══════════════════════════════════════
+function buildAboutGrid(){
+  document.getElementById('aboutGoalsGrid').innerHTML=SDG_GOALS.map(g=>`
+    <div style="padding:12px;border-radius:16px;background:${g.color}15;border:2px solid ${g.color}44;cursor:pointer;transition:transform .2s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+      <div style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;background:${g.color};box-shadow:0 0 11px ${g.color}66;margin-bottom:7px">${g.emoji}</div>
+      <h3 style="font-family:'Fredoka One',cursive;font-size:12px;color:var(--txt);margin-bottom:4px">Goal ${g.id}: ${g.title}</h3>
+      <p style="font-size:10px;font-weight:700;color:var(--muted);line-height:1.4;margin:0">${g.desc}</p>
+    </div>`).join('');
+}
+
+
+// ═══════════════════════════════════════
+//  SHARE
+// ═══════════════════════════════════════
+function shareWA(){const msg=encodeURIComponent('🌌 I scored '+score+' pts in SDG Quest Level '+currentLevel+'! 🫧⭐ '+location.href);window.open('https://api.whatsapp.com/send?text='+msg,'_blank');}
+function shareIG(){navigator.clipboard.writeText(`🌌 I scored ${score} pts in SDG Quest Level ${currentLevel}! Play: ${location.href}`);alert('Copied! Paste in Instagram 📸');}
+function copyLink(){
+  navigator.clipboard.writeText(location.href);
+  const btn=document.getElementById('copyBtn');btn.classList.add('copied');
+  document.getElementById('copyIcon').textContent='✅';document.getElementById('copyText').textContent='✅ Copied!';
+  setTimeout(()=>{btn.classList.remove('copied');document.getElementById('copyIcon').textContent='🔗';document.getElementById('copyText').textContent='Copy Game Link';},2000);
+}
+
+
+// ═══════════════════════════════════════
+//  INPUT
+// ═══════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'||e.key==='p'||e.key==='P'){if(gameRunning)pauseGame();else if(gamePaused)resumeGame();}
+  if(e.key==='s'||e.key==='S')swapBubbles();
+});
+
+canvas.addEventListener('mousemove',e=>{
+  const r=canvas.getBoundingClientRect();
+  const sx=CW/r.width,sy=CH/r.height;
+  mousePos={x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
+  // Update hover state for canvas buttons
+  hoverSwap=inBtn(mousePos,BTN_SWAP);
+  hoverPause=inBtn(mousePos,BTN_PAUSE);
+  canvas.style.cursor=(hoverSwap||hoverPause)?'pointer':'crosshair';
+});
+
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect();
+  const sx=CW/r.width,sy=CH/r.height;
+  mousePos={x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};
+},{passive:false});
+
+canvas.addEventListener('click',e=>{
+  const pos=getCanvasPos(e);
+  if(!handleCanvasClick(pos))shoot();
+});
+
+canvas.addEventListener('touchend',e=>{
+  const pos=getCanvasPos(e,true);
+  mousePos={x:pos.x,y:pos.y};
+  if(!handleCanvasClick(pos))shoot();
+});
+
+canvas.addEventListener('contextmenu',e=>{e.preventDefault();swapBubbles();});
+
+
+// ═══════════════════════════════════════
+//  GAME LOOP
+// ═══════════════════════════════════════
+function loop(){update();render();requestAnimationFrame(loop);}
+
+
+// ═══════════════════════════════════════
+//  LEADERBOARD
+// ═══════════════════════════════════════
+let lbCurrentTab='all';
+function getLbData(){try{return JSON.parse(localStorage.getItem('sdgquest_lb')||'[]');}catch(e){return[];}}
+function saveLbData(d){try{localStorage.setItem('sdgquest_lb',JSON.stringify(d));}catch(e){}}
+function switchLbTab(tab,el){
+  lbCurrentTab=tab;document.querySelectorAll('.lb-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderLeaderboard();
+}
+function renderLeaderboard(){
+  let data=getLbData();
+  const allData=getLbData(); // full data for stats
+  if(lbCurrentTab!=='all')data=data.filter(e=>e.level===lbCurrentTab);
+  data.sort((a,b)=>b.score-a.score);
+
+  const RANK=['🥇','🥈','🥉'];
+  const LVL_A={1:'🌱',2:'⚡',3:'🔥'};
+  const LVL_C={1:'#22d3ee',2:'#a855f7',3:'#fbbf24'};
+  const LVL_N={1:'People Goals',2:'Planet Goals',3:'Future Goals'};
+  const SS=['☆☆☆','⭐☆☆','⭐⭐☆','⭐⭐⭐'];
+
+  // ── Stats bar ──
+  const statsEl=document.getElementById('lbStats');
+  if(statsEl){
+    const total=allData.length;
+    const unique=new Set(allData.map(e=>e.name.toLowerCase())).size;
+    const lvlCounts={1:0,2:0,3:0};
+    allData.forEach(e=>{if(lvlCounts[e.level]!==undefined)lvlCounts[e.level]++;});
+    statsEl.innerHTML=`
+      <div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 10px;text-align:center;">
+        <div style="font-family:'Fredoka One',cursive;font-size:18px;color:#22d3ee">${total}</div>
+        <div style="font-size:9px;font-weight:900;color:var(--muted);text-transform:uppercase">Completions</div>
+      </div>
+      <div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 10px;text-align:center;">
+        <div style="font-family:'Fredoka One',cursive;font-size:18px;color:#a855f7">${unique}</div>
+        <div style="font-size:9px;font-weight:900;color:var(--muted);text-transform:uppercase">Players</div>
+      </div>
+      <div style="flex:1;background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:8px 10px;text-align:center;">
+        <div style="font-family:'Fredoka One',cursive;font-size:18px;color:#22d3ee">${lvlCounts[1]}</div>
+        <div style="font-size:9px;font-weight:900;color:var(--muted);text-transform:uppercase">🌱 Lv1</div>
+      </div>
+      <div style="flex:1;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:8px 10px;text-align:center;">
+        <div style="font-family:'Fredoka One',cursive;font-size:18px;color:#a855f7">${lvlCounts[2]}</div>
+        <div style="font-size:9px;font-weight:900;color:var(--muted);text-transform:uppercase">⚡ Lv2</div>
+      </div>
+      <div style="flex:1;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:8px 10px;text-align:center;">
+        <div style="font-family:'Fredoka One',cursive;font-size:18px;color:#fbbf24">${lvlCounts[3]}</div>
+        <div style="font-size:9px;font-weight:900;color:var(--muted);text-transform:uppercase">🔥 Lv3</div>
+      </div>`;
+  }
+
+  let html='';
+
+  if(data.length===0){
+    html=`<div style="text-align:center;padding:36px 0;">
+      <div style="font-size:44px;margin-bottom:8px">🌍</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:16px;color:var(--txt);margin-bottom:4px">No completions yet!</div>
+      <div style="font-size:12px;font-weight:800;color:var(--muted)">Be the first champion — clear a level to appear here!</div>
+    </div>`;
+  } else {
+    data.slice(0,50).forEach((e,i)=>{
+      const isTop=i<3;
+      const topStyle=[
+        'background:linear-gradient(135deg,rgba(251,191,36,.12),rgba(251,191,36,.04));border-color:rgba(251,191,36,.5);box-shadow:0 0 16px rgba(251,191,36,.12);',
+        'background:linear-gradient(135deg,rgba(192,192,192,.1),rgba(192,192,192,.03));border-color:rgba(192,192,192,.35);',
+        'background:linear-gradient(135deg,rgba(205,127,50,.1),rgba(205,127,50,.03));border-color:rgba(205,127,50,.35);'
+      ];
+      const style=isTop?topStyle[i]:'';
+      const rankIcon=i<3?`<span style="font-size:22px">${RANK[i]}</span>`:`<span style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--muted);width:24px;text-align:center;display:inline-block">${i+1}</span>`;
+      const lvColor=LVL_C[e.level]||'#a855f7';
+      const starsStr=SS[e.stars]||'⭐⭐⭐';
+      const timeInfo=e.timeLeft!=null?`⏱ ${Math.floor(e.timeLeft/60)}m${e.timeLeft%60}s left`:'';
+      const shotsInfo=e.shots!=null?`🎯 ${e.shots} shots left`:'';
+      const dateStr=e.time?`${e.date} ${e.time}`:e.date;
+
+      // Highlight if this is the current player
+      const isMe=playerName&&e.name.toLowerCase()===playerName.toLowerCase();
+      const meStyle=isMe?'outline:2px solid rgba(168,85,247,.6);outline-offset:2px;':'';
+
+      html+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);margin-bottom:7px;${style}${meStyle}transition:transform .15s;" onmouseover="this.style.transform='translateX(3px)'" onmouseout="this.style.transform=''">
+        <!-- Rank -->
+        <div style="flex-shrink:0;width:28px;text-align:center">${rankIcon}</div>
+        <!-- Level avatar -->
+        <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:${lvColor}22;border:2px solid ${lvColor}55;box-shadow:0 0 8px ${lvColor}33">${LVL_A[e.level]||'🌍'}</div>
+        <!-- Info -->
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+            <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.name.slice(0,20)}</div>
+            ${isMe?'<span style="font-size:9px;font-weight:900;background:rgba(168,85,247,.25);color:#c4b5fd;border-radius:5px;padding:1px 5px">YOU</span>':''}
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+            <span style="font-size:9px;font-weight:900;background:${lvColor}18;color:${lvColor};border:1px solid ${lvColor}44;border-radius:6px;padding:1px 6px">${LVL_A[e.level]} ${LVL_N[e.level]||'Lv'+e.level}</span>
+            <span style="font-size:11px">${starsStr}</span>
+            ${timeInfo?`<span style="font-size:9px;font-weight:800;color:var(--muted)">${timeInfo}</span>`:''}
+            ${shotsInfo?`<span style="font-size:9px;font-weight:800;color:var(--muted)">${shotsInfo}</span>`:''}
+          </div>
+          <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.3);margin-top:2px">📅 ${dateStr}</div>
+        </div>
+        <!-- Score -->
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-family:'Fredoka One',cursive;font-size:16px;color:var(--gold)">${e.score.toLocaleString()}</div>
+          <div style="font-size:9px;font-weight:900;color:var(--muted)">pts</div>
+        </div>
+      </div>`;
+    });
+
+    if(data.length>50){
+      html+=`<div style="text-align:center;font-size:11px;font-weight:800;color:var(--muted);padding:6px 0">+${data.length-50} more completions</div>`;
+    }
+  }
+
+  document.getElementById('lbBody').innerHTML=html;
+}
+function openLeaderboard(){renderLeaderboard();document.getElementById('leaderboardOverlay').style.display='block';}
+function closeLeaderboard(){document.getElementById('leaderboardOverlay').style.display='none';}
+
+
+// ═══════════════════════════════════════
+//  STARTUP
+// ═══════════════════════════════════════
+buildAboutGrid();
+buildLevelCards();
+// Render an idle frame so canvas isn't blank before game starts
+requestAnimationFrame(()=>{
+  const skyGrad=ctx.createLinearGradient(0,0,0,CH);
+  skyGrad.addColorStop(0,'#a8c8e8');skyGrad.addColorStop(1,'#d8eaf6');
+  ctx.fillStyle=skyGrad;ctx.fillRect(0,0,CW,CH);
+});
+</script>
+</body>
+</html>

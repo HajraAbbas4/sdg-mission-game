@@ -1,0 +1,2444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TUGOFWAR</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red:#FF3B3B; --blue:#1E90FF; --yellow:#FFD600; --green:#00C853;
+    --orange:#FF6D00; --purple:#AA00FF; --bg:#0a0a2e; --white:#fff;
+    --bar: 38px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{
+    font-family:'Nunito',sans-serif; background:var(--bg); color:var(--white);
+    width:100%; height:100%; overflow:hidden;
+  }
+
+  /* STARS */
+  #stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+  .star{position:absolute;border-radius:50%;background:white;animation:twinkle 3s infinite alternate;}
+  @keyframes twinkle{0%{opacity:.2}100%{opacity:1}}
+
+  /* ALL SCREENS: fixed, full viewport, never scroll */
+  .screen{
+    display:none; position:fixed; inset:0; z-index:1;
+    flex-direction:column; align-items:center; justify-content:center;
+    padding:10px; overflow:hidden;
+  }
+  .screen.active{display:flex;}
+
+  /* TOP BAR */
+  .top-bar{
+    position:fixed;top:0;left:0;width:100%;height:var(--bar);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 12px;z-index:100;
+    background:rgba(10,10,46,.95);backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(255,255,255,.12);
+  }
+  .top-bar-title{font-family:'Fredoka One',cursive;font-size:1rem;color:var(--yellow);letter-spacing:2px;}
+  .top-bar-btns{display:flex;gap:5px;}
+  .btn-small{
+    padding:3px 10px;border-radius:16px;border:none;
+    font-family:'Nunito',sans-serif;font-weight:800;font-size:0.68rem;
+    cursor:pointer;transition:all .2s;
+  }
+  .btn-back{background:var(--orange);color:#fff;}
+  .btn-exit{background:var(--red);color:#fff;}
+  .btn-settings-top{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);}
+  .btn-settings-top:hover{background:rgba(255,255,255,.28);}
+  .btn-small:hover{filter:brightness(1.2);}
+
+  /* MENU */
+  #menu{background:radial-gradient(ellipse at center,#1a1a5e 0%,#0a0a2e 70%);gap:10px;padding:calc(var(--bar) + 10px) 14px 14px;}
+  .menu-logo{width:80px;height:80px;animation:float 3s ease-in-out infinite;flex-shrink:0;}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .menu-game-title{
+    font-family:'Fredoka One',cursive;font-size:clamp(2.6rem,8vw,4.2rem);line-height:1;
+    background:linear-gradient(135deg,#FFD600,#FF6D00,#FF3B3B,#AA00FF,#1E90FF,#00C853);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;animation:shimmer 3s linear infinite;background-size:200%;
+  }
+  .menu-game-title span{display:inline;}
+  @keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+  .menu-tagline{font-size:0.78rem;color:rgba(255,255,255,.65);letter-spacing:2px;text-transform:uppercase;text-align:center;}
+  .menu-cards{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;}
+  .menu-card{
+    width:200px;padding:24px 18px;border-radius:20px;border:2px solid transparent;
+    cursor:pointer;transition:all .3s;text-align:center;overflow:hidden;
+  }
+  .menu-card:hover{transform:translateY(-6px) scale(1.03);}
+  .card-sp{background:linear-gradient(135deg,#1a3a6e,#0d1f4a);border-color:var(--blue);box-shadow:0 0 24px rgba(30,144,255,.35);}
+  .card-sp:hover{box-shadow:0 0 44px rgba(30,144,255,.7);}
+  .card-tp{background:linear-gradient(135deg,#3a1a1a,#4a0d0d);border-color:var(--red);box-shadow:0 0 24px rgba(255,59,59,.35);}
+  .card-tp:hover{box-shadow:0 0 44px rgba(255,59,59,.7);}
+  .card-icon{font-size:2.6rem;margin-bottom:8px;display:block;}
+  .card-title{font-family:'Fredoka One',cursive;font-size:1.1rem;margin-bottom:6px;}
+  .card-desc{font-size:0.72rem;color:rgba(255,255,255,.65);line-height:1.4;}
+  .settings-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .btn-settings{
+    padding:8px 18px;border-radius:20px;border:1px solid rgba(255,255,255,.3);
+    background:rgba(255,255,255,.07);color:#fff;cursor:pointer;
+    font-family:'Nunito',sans-serif;font-weight:700;font-size:0.75rem;transition:all .2s;
+  }
+  .btn-settings:hover{background:rgba(255,255,255,.18);}
+
+  /* SETTINGS PANEL */
+  .settings-panel{display:flex;flex-direction:column;gap:8px;margin-bottom:4px;}
+  .setting-row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;
+  }
+  .setting-info{display:flex;align-items:center;gap:10px;}
+  .setting-icon{font-size:1.3rem;flex-shrink:0;}
+  .setting-label{font-family:'Fredoka One',cursive;font-size:0.88rem;color:#fff;}
+  .setting-desc{font-size:0.62rem;color:rgba(255,255,255,.5);margin-top:1px;}
+  /* Toggle switch */
+  .toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0;cursor:pointer;}
+  .toggle-switch input{opacity:0;width:0;height:0;}
+  .toggle-slider{
+    position:absolute;inset:0;background:rgba(255,255,255,.2);border-radius:24px;transition:.3s;
+  }
+  .toggle-slider:before{
+    content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;
+    background:#fff;border-radius:50%;transition:.3s;
+  }
+  .toggle-switch input:checked + .toggle-slider{background:var(--green);}
+  .toggle-switch input:checked + .toggle-slider:before{transform:translateX(20px);}
+  /* Volume slider */
+  .vol-slider{
+    -webkit-appearance:none;width:110px;height:6px;border-radius:3px;
+    background:rgba(255,255,255,.2);outline:none;cursor:pointer;flex-shrink:0;
+  }
+  .vol-slider::-webkit-slider-thumb{
+    -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+    background:var(--yellow);cursor:pointer;
+  }
+
+  /* OVERLAY / MODAL */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:none;align-items:center;justify-content:center;padding:12px;}
+  .overlay.active{display:flex;}
+  .modal{
+    background:linear-gradient(135deg,#1a1a5e,#0d0d3a);border:2px solid var(--yellow);
+    border-radius:18px;padding:16px 18px;max-width:440px;width:100%;
+    animation:pop-in .3s cubic-bezier(.34,1.56,.64,1);max-height:90vh;overflow-y:auto;
+  }
+  @keyframes pop-in{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+  .modal h2{font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--yellow);margin-bottom:10px;text-align:center;}
+  .how-list{list-style:none;display:flex;flex-direction:column;gap:6px;}
+  .how-list li{
+    display:flex;align-items:flex-start;gap:8px;
+    background:rgba(255,255,255,.06);border-radius:8px;padding:8px;
+    font-size:0.75rem;line-height:1.35;
+  }
+  .how-list li span.icon{font-size:1rem;flex-shrink:0;}
+  .btn-ok{
+    margin-top:10px;width:100%;padding:9px;font-family:'Fredoka One',cursive;font-size:0.95rem;
+    border:none;border-radius:50px;cursor:pointer;
+    background:linear-gradient(135deg,var(--yellow),var(--orange));color:#0a0a2e;transition:all .2s;
+  }
+
+  /* NAME PICKER */
+  #namepicker{padding-top:var(--bar);gap:8px;}
+  .np-title{font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--yellow);text-align:center;}
+  .np-cards{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .np-card{width:170px;padding:14px 12px;border-radius:16px;text-align:center;}
+  .np-card-red{background:linear-gradient(135deg,#3a0a0a,#5a1010);border:2px solid var(--red);}
+  .np-card-blue{background:linear-gradient(135deg,#0a1a3a,#0d2a5e);border:2px solid var(--blue);}
+  .np-player-icon{font-size:2rem;margin-bottom:6px;display:block;}
+  .np-label{font-family:'Fredoka One',cursive;font-size:0.9rem;margin-bottom:8px;}
+  .np-input{
+    width:100%;padding:7px 10px;border-radius:8px;
+    border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);
+    color:#fff;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:700;
+    text-align:center;outline:none;
+  }
+  .np-input:focus{border-color:var(--yellow);}
+  .np-input::placeholder{color:rgba(255,255,255,.4);}
+  .btn-startgame{
+    padding:10px 40px;font-family:'Fredoka One',cursive;font-size:1rem;
+    border:none;border-radius:50px;cursor:pointer;
+    background:linear-gradient(135deg,#00C853,#1E90FF);
+    color:#fff;box-shadow:0 0 18px rgba(0,200,83,.4);transition:all .2s;
+  }
+  .btn-startgame:hover{transform:scale(1.04);}
+
+  /* ===== GAME SCREEN ===== */
+  #game{
+    position:fixed;inset:0;
+    padding:calc(var(--bar) + 3px) 6px 3px;
+    max-width:700px;margin:0 auto;
+    display:none;flex-direction:column;gap:3px;overflow:hidden;
+  }
+  #game.active{display:flex;}
+
+  /* header row */
+  .game-header{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .sdg-badge{
+    background:linear-gradient(135deg,var(--purple),var(--blue));
+    border-radius:12px;padding:3px 10px;
+    font-family:'Fredoka One',cursive;font-size:0.72rem;
+  }
+  .score-box{
+    background:rgba(255,255,255,.08);border-radius:8px;
+    padding:2px 10px;text-align:center;border:1px solid rgba(255,255,255,.2);
+  }
+  .score-label{font-size:0.52rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px;}
+  .score-val{font-family:'Fredoka One',cursive;font-size:0.88rem;color:var(--yellow);}
+  .timer-ring{width:36px;height:36px;position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .timer-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
+  .timer-ring .track{fill:none;stroke:rgba(255,255,255,.12);stroke-width:3;}
+  .timer-ring .prog{fill:none;stroke:var(--green);stroke-width:3;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear,stroke .3s;}
+  .timer-num{font-family:'Fredoka One',cursive;font-size:0.8rem;z-index:1;}
+
+  /* 2P scores */
+  .tp-scores{display:flex;justify-content:space-between;width:100%;gap:6px;flex-shrink:0;}
+  .tp-score-box{flex:1;padding:3px 8px;border-radius:8px;text-align:center;}
+  .tp-score-box.red-box{background:rgba(255,59,59,.15);border:1px solid var(--red);}
+  .tp-score-box.blue-box{background:rgba(30,144,255,.15);border:1px solid var(--blue);}
+  .tp-name{font-family:'Fredoka One',cursive;font-size:0.7rem;}
+  .tp-pts{font-family:'Fredoka One',cursive;font-size:1rem;}
+  .red-box .tp-pts{color:var(--red);}
+  .blue-box .tp-pts{color:var(--blue);}
+  .tp-turn-indicator{font-size:0.55rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;}
+  .active-turn{color:var(--yellow)!important;font-weight:900;}
+
+  /* tug canvas */
+  .tug-container{width:100%;height:140px;position:relative;flex-shrink:0;overflow:visible;}
+  #tugCanvas{width:100%;height:100%;}
+
+  /* question */
+  .question-box{
+    background:rgba(255,255,255,.07);border-radius:10px;
+    padding:5px 12px;border:1px solid rgba(255,255,255,.14);
+    text-align:center;flex-shrink:0;
+  }
+  .question-sdg-label{font-size:0.56rem;text-transform:uppercase;letter-spacing:2px;color:var(--yellow);margin-bottom:1px;}
+  .question-text{font-size:0.76rem;font-weight:700;line-height:1.3;}
+
+  /* buzzer */
+  .buzzer-bar{display:flex;gap:6px;justify-content:center;flex-shrink:0;}
+  .buzzer-btn{
+    padding:4px 14px;border-radius:20px;border:none;
+    font-family:'Fredoka One',cursive;font-size:0.75rem;
+    cursor:pointer;transition:all .15s;
+  }
+  .buzzer-red{background:var(--red);color:#fff;box-shadow:0 0 10px rgba(255,59,59,.5);}
+  .buzzer-blue{background:var(--blue);color:#fff;box-shadow:0 0 10px rgba(30,144,255,.5);}
+  .buzzer-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .buzzer-hint{text-align:center;font-size:0.58rem;color:rgba(255,255,255,.5);flex-shrink:0;}
+
+  /* locked msg */
+  .locked-msg{text-align:center;font-family:'Fredoka One',cursive;font-size:0.72rem;min-height:14px;flex-shrink:0;}
+
+  /* q-meta bar */
+  .q-meta-bar{display:flex;justify-content:space-between;align-items:center;width:100%;flex-shrink:0;}
+  .q-num-badge{
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
+    border-radius:12px;padding:2px 8px;
+    font-family:'Fredoka One',cursive;font-size:0.68rem;color:var(--yellow);
+  }
+  .q-incorrect-badge{
+    background:rgba(255,59,59,.15);border:1px solid var(--red);
+    border-radius:12px;padding:2px 8px;
+    font-family:'Fredoka One',cursive;font-size:0.68rem;color:#ff7070;display:none;
+  }
+
+  /* answer grid — fills all remaining space */
+  .grid-container{flex:1;min-height:0;width:100%;}
+  .answers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;height:100%;}
+  .ans-btn{
+    border-radius:10px;border:1px solid rgba(255,255,255,.15);
+    background:rgba(255,255,255,.06);color:#fff;
+    cursor:pointer;transition:all .2s;text-align:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:3px;width:100%;height:100%;min-height:0;
+  }
+  .ans-btn .ans-symbol{font-size:clamp(.9rem,2.8vw,1.4rem);line-height:1;}
+  .ans-btn .ans-text{font-size:clamp(.52rem,1.4vw,.66rem);font-weight:800;font-family:'Nunito',sans-serif;line-height:1.2;padding:0 3px;}
+  .ans-btn:hover:not(:disabled){background:rgba(255,255,255,.15);transform:scale(1.03);border-color:var(--yellow);}
+  .ans-btn:disabled{cursor:not-allowed;}
+  .ans-btn.correct{background:rgba(0,200,83,.3);border-color:var(--green);animation:flash-correct .4s ease;}
+  .ans-btn.wrong{background:rgba(255,59,59,.3);border-color:var(--red);animation:flash-wrong .4s ease;}
+  @keyframes flash-correct{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+  @keyframes flash-wrong{0%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}100%{transform:translateX(0)}}
+
+  /* END SCREEN */
+  #endscreen{padding-top:var(--bar);gap:5px;}
+  .end-trophy{font-size:2.8rem;animation:bounce .8s infinite alternate;}
+  @keyframes bounce{0%{transform:translateY(0) rotate(-6deg)}100%{transform:translateY(-10px) rotate(6deg)}}
+  .end-title{
+    font-family:'Fredoka One',cursive;font-size:clamp(1.4rem,4.5vw,2.2rem);
+    background:linear-gradient(135deg,var(--yellow),var(--orange));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;
+  }
+  .end-compliment{font-size:0.75rem;color:rgba(255,255,255,.7);text-align:center;max-width:460px;padding:0 8px;}
+  .end-scores{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .end-score-card{padding:10px 18px;border-radius:12px;text-align:center;min-width:100px;}
+  .end-score-card.red-card{background:rgba(255,59,59,.2);border:2px solid var(--red);}
+  .end-score-card.blue-card{background:rgba(30,144,255,.2);border:2px solid var(--blue);}
+  .end-score-card.single-card{background:rgba(255,214,0,.15);border:2px solid var(--yellow);}
+  .end-score-name{font-family:'Fredoka One',cursive;font-size:0.78rem;margin-bottom:3px;}
+  .end-score-pts{font-family:'Fredoka One',cursive;font-size:1.6rem;}
+  .red-card .end-score-pts{color:var(--red);}
+  .blue-card .end-score-pts{color:var(--blue);}
+  .single-card .end-score-pts{color:var(--yellow);}
+  .end-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+  .btn-end{
+    padding:8px 20px;border-radius:50px;border:none;
+    font-family:'Fredoka One',cursive;font-size:0.82rem;cursor:pointer;transition:all .2s;
+  }
+  .btn-again{background:linear-gradient(135deg,var(--green),#1E90FF);color:#fff;}
+  .btn-main{background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;}
+  .btn-exitfull{background:linear-gradient(135deg,var(--red),var(--orange));color:#fff;}
+  .btn-end:hover{transform:scale(1.05);}
+
+  /* TOAST */
+  .toast{
+    position:fixed;top:48px;left:50%;transform:translateX(-50%) translateY(-80px);
+    padding:7px 20px;border-radius:24px;font-family:'Fredoka One',cursive;
+    font-size:0.85rem;z-index:300;transition:transform .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .toast.correct-toast{background:var(--green);color:#fff;box-shadow:0 0 18px rgba(0,200,83,.6);}
+  .toast.wrong-toast{background:var(--red);color:#fff;box-shadow:0 0 18px rgba(255,59,59,.6);}
+
+  /* CONFETTI */
+  .confetti-piece{position:fixed;z-index:400;animation:confetti-fall 3s ease-in forwards;border-radius:2px;}
+  @keyframes confetti-fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+  /* EXPLANATION BOX */
+  #explanationBox{position:fixed;bottom:0;left:0;width:100%;z-index:250;max-height:30vh;}
+
+  /* ── SDG LEARN POPUP ── */
+  #learnPopup{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.88);display:none;align-items:center;justify-content:center;padding:12px;overflow:hidden;}
+  #learnPopup.show{display:flex;}
+  .lp-card{background:linear-gradient(160deg,#0d1b2a,#0a2240);border:2px solid rgba(255,255,255,0.12);border-radius:24px;width:100%;max-width:520px;height:90vh;overflow:hidden;display:flex;flex-direction:column;}
+  .lp-header{padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .lp-title{font-family:'Fredoka One',cursive;font-size:1.3rem;background:linear-gradient(90deg,#00d4ff,#00e676);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .lp-close{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:5px 12px;color:white;font-family:'Fredoka One',cursive;font-size:0.85rem;cursor:pointer;}
+  .lp-close:hover{background:rgba(255,255,255,0.2);}
+  .lp-body{overflow-y:scroll;-webkit-overflow-scrolling:touch;padding:12px;display:flex;flex-direction:column;gap:8px;flex:1;min-height:0;}
+  .lp-sdg{border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);flex-shrink:0;}
+  .lp-sdg-top{padding:10px 14px;display:flex;align-items:center;gap:10px;}
+  .lp-num{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1rem;color:white;flex-shrink:0;}
+  .lp-name{font-family:'Fredoka One',cursive;font-size:0.95rem;color:white;}
+  .lp-sdg-body{padding:0 14px 10px;font-size:0.78rem;color:rgba(255,255,255,0.75);font-weight:700;line-height:1.6;}
+  .lp-bar{height:4px;}
+  /* learn button style */
+  .btn-learn{background:linear-gradient(135deg,#00d4ff,#00897b);color:white;box-shadow:0 4px 0 #005f56;}
+
+  /* ── LEADERBOARD POPUP ── */
+  #leaderboardPopup{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.88);display:none;align-items:center;justify-content:center;padding:12px;overflow:hidden;}
+  #leaderboardPopup.show{display:flex;}
+  .lb-card{background:linear-gradient(160deg,#0d1b2a,#0a2240);border:2px solid var(--yellow);border-radius:24px;width:100%;max-width:500px;height:88vh;overflow:hidden;display:flex;flex-direction:column;}
+  .lb-header{padding:14px 18px 10px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .lb-title{font-family:'Fredoka One',cursive;font-size:1.3rem;background:linear-gradient(90deg,var(--yellow),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .lb-close{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:5px 12px;color:white;font-family:'Fredoka One',cursive;font-size:0.85rem;cursor:pointer;}
+  .lb-close:hover{background:rgba(255,255,255,0.2);}
+  .lb-tabs{display:flex;gap:6px;padding:10px 14px 0;flex-shrink:0;}
+  .lb-tab{flex:1;padding:7px 0;border-radius:10px 10px 0 0;border:none;font-family:'Fredoka One',cursive;font-size:0.8rem;cursor:pointer;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);transition:all .2s;}
+  .lb-tab.active{background:rgba(255,214,0,0.18);color:var(--yellow);border-bottom:2px solid var(--yellow);}
+  .lb-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;display:flex;flex-direction:column;gap:6px;flex:1;min-height:0;}
+  .lb-empty{text-align:center;padding:40px 20px;font-family:'Fredoka One',cursive;color:rgba(255,255,255,0.3);font-size:1rem;}
+  .lb-entry{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 14px;flex-shrink:0;transition:background .2s;}
+  .lb-entry:hover{background:rgba(255,255,255,0.09);}
+  .lb-entry.top-1{background:rgba(255,214,0,0.12);border-color:rgba(255,214,0,0.4);}
+  .lb-entry.top-2{background:rgba(200,200,200,0.09);border-color:rgba(200,200,200,0.3);}
+  .lb-entry.top-3{background:rgba(205,127,50,0.1);border-color:rgba(205,127,50,0.35);}
+  .lb-rank{font-family:'Fredoka One',cursive;font-size:1.1rem;width:28px;text-align:center;flex-shrink:0;}
+  .lb-info{flex:1;min-width:0;}
+  .lb-name{font-family:'Fredoka One',cursive;font-size:0.88rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .lb-sub{font-size:0.62rem;color:rgba(255,255,255,0.45);margin-top:1px;}
+  .lb-score{font-family:'Fredoka One',cursive;font-size:1.15rem;color:var(--yellow);flex-shrink:0;}
+  .lb-clr-btn{margin-top:4px;padding:7px 16px;border-radius:20px;border:1px solid rgba(255,59,59,0.4);background:rgba(255,59,59,0.1);color:rgba(255,100,100,0.85);font-family:'Fredoka One',cursive;font-size:0.75rem;cursor:pointer;display:block;width:100%;transition:all .2s;}
+  .lb-clr-btn:hover{background:rgba(255,59,59,0.25);}
+</style>
+</head>
+<body>
+
+<!-- Stars -->
+<div id="stars"></div>
+
+<!-- Top Bar (always visible) -->
+<div class="top-bar" id="topBar">
+  <div class="top-bar-title">🌍 TUG OF WAR</div>
+  <div class="top-bar-btns">
+    <button class="btn-small btn-settings-top" id="btnBackTop" onclick="goBack()" style="display:none;">⬅ Menu</button>
+    <button class="btn-small btn-settings-top" onclick="openSettings()">⚙️</button>
+    <button class="btn-small btn-exit" id="btnExitTop" onclick="exitGame()" style="display:none;">✕</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== MAIN MENU (now first screen) ===== -->
+<div class="screen active" id="menu">
+  <div class="menu-logo">
+    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="60" cy="60" r="55" fill="none" stroke="#1E90FF" stroke-width="4"/>
+      <circle cx="60" cy="60" r="55" fill="url(#globeGrad2)" opacity="0.3"/>
+      <ellipse cx="60" cy="60" rx="25" ry="55" fill="none" stroke="#1E90FF" stroke-width="2"/>
+      <ellipse cx="60" cy="60" rx="45" ry="55" fill="none" stroke="#00C853" stroke-width="1.5"/>
+      <line x1="5" y1="60" x2="115" y2="60" stroke="#FFD600" stroke-width="2"/>
+      <line x1="10" y1="35" x2="110" y2="35" stroke="#FFD600" stroke-width="1.5"/>
+      <line x1="10" y1="85" x2="110" y2="85" stroke="#FFD600" stroke-width="1.5"/>
+      <defs>
+        <radialGradient id="globeGrad2" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#1E90FF"/>
+          <stop offset="100%" stop-color="#0a0a2e"/>
+        </radialGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="menu-game-title">TUG OF WAR</div>
+  <div class="menu-tagline">🌍 SDG Tug of War · Learn · Compete · Win</div>
+  <div class="menu-cards">
+    <div class="menu-card card-sp" onclick="startMode('single')">
+      <span class="card-icon">🧠</span>
+      <div class="card-title" style="color:#1E90FF;">Single Player</div>
+      <div class="card-desc">Take on the world solo. Answer 17 SDG questions and pull the rope to victory!</div>
+    </div>
+    <div class="menu-card card-tp" onclick="startMode('two')">
+      <span class="card-icon">⚔️</span>
+      <div class="card-title" style="color:#FF3B3B;">Two Players</div>
+      <div class="card-desc">Challenge a friend! Buzz in fast with R or B key. Outsmart your opponent!</div>
+    </div>
+  </div>
+  <div class="settings-row">
+    <button class="btn-settings" onclick="openLeaderboard()">🏆 Leaderboard</button>
+    <button class="btn-settings" onclick="exitGame()">🚪 Exit</button>
+  </div>
+</div>
+
+<!-- ===== HOW TO PLAY OVERLAYS ===== -->
+<div class="overlay" id="howSP">
+  <div class="modal">
+    <h2>🎮 How to Play</h2>
+    <ul class="how-list">
+      <li><span class="icon">🌍</span><span>Face <strong>17 SDG questions</strong> — one per Global Goal.</span></li>
+      <li><span class="icon">⏱️</span><span>You have <strong>30 seconds</strong> per question. Don't let the clock run out!</span></li>
+      <li><span class="icon">✅</span><span>Pick the <strong>1 correct answer</strong> from the 3×3 grid of options.</span></li>
+      <li><span class="icon">🪢</span><span>Correct answer → rope pulls toward <strong>WINNING</strong> side. Wrong → toward <strong>DANGER</strong>!</span></li>
+      <li><span class="icon">🏆</span><span>Pull the rope all the way to <strong>WIN</strong>. Score as many points as you can!</span></li>
+    </ul>
+    <button class="btn-ok" onclick="closeHow('howSP'); startSingleGame()">LET'S GO! 🚀</button>
+  </div>
+</div>
+
+<div class="overlay" id="howTP">
+  <div class="modal">
+    <h2>⚔️ Two Player Rules</h2>
+    <ul class="how-list">
+      <li><span class="icon">🔴</span><span><strong>Player 1 (Red)</strong>: Press <kbd style="background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:6px;">R</kbd> to buzz in!</span></li>
+      <li><span class="icon">🔵</span><span><strong>Player 2 (Blue)</strong>: Press <kbd style="background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:6px;">B</kbd> to buzz in!</span></li>
+      <li><span class="icon">⚡</span><span>Whoever buzzes <strong>first</strong> gets to answer. Speed matters!</span></li>
+      <li><span class="icon">⏰</span><span>Wrong answer or timeout → chance passes + time bonus added to opponent.</span></li>
+      <li><span class="icon">🪢</span><span>Pull the rope to your side to claim <strong>VICTORY!</strong></span></li>
+    </ul>
+    <button class="btn-ok" onclick="closeHow('howTP'); showScreen('namepicker')">GOT IT! 💪</button>
+  </div>
+</div>
+
+<!-- ===== SETTINGS OVERLAY ===== -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal">
+    <h2>⚙️ Settings</h2>
+    <div class="settings-panel">
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-icon">🔊</span>
+          <div>
+            <div class="setting-label">Sound Effects</div>
+            <div class="setting-desc">Button clicks, correct/wrong answers</div>
+          </div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="sfxToggle" checked onchange="toggleSFX(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-icon">🎵</span>
+          <div>
+            <div class="setting-label">Background Music</div>
+            <div class="setting-desc">Ambient game music</div>
+          </div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="musicToggle" checked onchange="toggleMusic(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-icon">🔈</span>
+          <div>
+            <div class="setting-label">Master Volume</div>
+            <div class="setting-desc">Overall sound level</div>
+          </div>
+        </div>
+        <input type="range" id="volumeSlider" min="0" max="100" value="70" class="vol-slider" oninput="setVolume(this.value)">
+      </div>
+    </div>
+    <button class="btn-ok" onclick="closeSettings()">✅ Done</button>
+  </div>
+</div>
+
+
+<div class="screen" id="namepicker">
+  <div class="np-title">👥 Choose Your Names</div>
+  <div class="np-cards">
+    <div class="np-card np-card-red">
+      <span class="np-player-icon">🔴</span>
+      <div class="np-label" style="color:#FF3B3B;">Player 1 · RED</div>
+      <input class="np-input" id="nameRed" placeholder="Enter name..." maxlength="12"/>
+      <div style="margin-top:10px;font-size:0.8rem;color:rgba(255,255,255,0.5);">Press <strong>R</strong> to buzz in</div>
+    </div>
+    <div class="np-card np-card-blue">
+      <span class="np-player-icon">🔵</span>
+      <div class="np-label" style="color:#1E90FF;">Player 2 · BLUE</div>
+      <input class="np-input" id="nameBlue" placeholder="Enter name..." maxlength="12"/>
+      <div style="margin-top:10px;font-size:0.8rem;color:rgba(255,255,255,0.5);">Press <strong>B</strong> to buzz in</div>
+    </div>
+  </div>
+  <button class="btn-startgame" onclick="startTwoGame()">START BATTLE ⚔️</button>
+</div>
+
+<!-- ===== GAME SCREEN ===== -->
+<div class="screen" id="game">
+  <!-- Header -->
+  <div class="game-header">
+    <div class="sdg-badge" id="sdgBadge">🌍 SDG #1</div>
+    <div style="display:flex;gap:12px;align-items:center;">
+      <div class="score-box" id="sp-score-box">
+        <div class="score-label">Points</div>
+        <div class="score-val" id="spScore">0</div>
+      </div>
+      <div class="timer-ring" id="timerRing">
+        <svg width="36" height="36" viewBox="0 0 36 36">
+          <circle class="track" cx="18" cy="18" r="15"/>
+          <circle class="prog" id="timerCircle" cx="18" cy="18" r="15"/>
+        </svg>
+        <div class="timer-num" id="timerNum">30</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2P Scores (hidden in SP) -->
+  <div class="tp-scores" id="tp-scores" style="display:none;">
+    <div class="tp-score-box red-box">
+      <div class="tp-name" id="tpNameRed" style="color:#FF3B3B;">Red</div>
+      <div class="tp-pts" id="tpScoreRed">0</div>
+      <div class="tp-turn-indicator" id="tpTurnRed">· waiting ·</div>
+    </div>
+    <div class="tp-score-box blue-box">
+      <div class="tp-name" id="tpNameBlue" style="color:#1E90FF;">Blue</div>
+      <div class="tp-pts" id="tpScoreBlue">0</div>
+      <div class="tp-turn-indicator" id="tpTurnBlue">· waiting ·</div>
+    </div>
+  </div>
+
+  <!-- Tug of War -->
+  <div class="tug-container">
+    <canvas id="tugCanvas"></canvas>
+  </div>
+
+  <!-- Question -->
+  <div class="question-box">
+    <div class="question-sdg-label" id="qSDGLabel">SDG 1 · No Poverty</div>
+    <div class="question-text" id="questionText">Loading question...</div>
+  </div>
+
+  <!-- Buzzer Bar (2P only) -->
+  <div class="buzzer-hint" id="buzzerHint" style="display:none;">Press your key to buzz in first!</div>
+  <div class="buzzer-bar" id="buzzerBar" style="display:none;">
+    <button class="buzzer-btn buzzer-red" id="buzzerRed" onclick="buzz('red')">🔴 R — RED BUZZ</button>
+    <button class="buzzer-btn buzzer-blue" id="buzzerBlue" onclick="buzz('blue')">🔵 B — BLUE BUZZ</button>
+  </div>
+  <div class="locked-msg" id="lockedMsg"></div>
+
+  <!-- Answers -->
+  <div class="q-meta-bar">
+    <div class="q-num-badge" id="qNumBadge">Q 1 / 17</div>
+    <div class="q-incorrect-badge" id="qIncorrectBadge">❌ 0 incorrect</div>
+  </div>
+  <div class="grid-container">
+    <div class="answers-grid" id="answersGrid"></div>
+  </div>
+</div>
+
+<!-- ===== END SCREEN ===== -->
+<div class="screen" id="endscreen">
+  <div class="end-trophy" id="endTrophy">🏆</div>
+  <div class="end-title" id="endTitle">You Won!</div>
+  <div class="end-compliment" id="endCompliment">Amazing knowledge of the SDGs!</div>
+  <div class="end-scores" id="endScores"></div>
+  <div class="end-btns">
+    <button class="btn-end btn-again" id="playAgainBtn" onclick="playAgain()">🔄 Play Again</button>
+    <button class="btn-end btn-main" onclick="goBack()">🏠 Main Menu</button>
+    <button class="btn-end" style="background:linear-gradient(135deg,var(--yellow),var(--orange));color:#0a0a2e;" onclick="openLeaderboard()">🏆 Leaderboard</button>
+    <button class="btn-end btn-exitfull" onclick="exitGame()">🚪 Exit</button>
+  </div>
+</div>
+
+<!-- ===== LEADERBOARD POPUP ===== -->
+<div id="leaderboardPopup">
+  <div class="lb-card">
+    <div class="lb-header">
+      <div class="lb-title">🏆 Leaderboard</div>
+      <button class="lb-close" onclick="closeLeaderboard()">✕ Close</button>
+    </div>
+    <div class="lb-tabs">
+      <button class="lb-tab active" id="lbTabSP" onclick="switchLBTab('sp')">🧠 Solo</button>
+      <button class="lb-tab" id="lbTabTP" onclick="switchLBTab('tp')">⚔️ Two Player</button>
+    </div>
+    <div class="lb-body" id="lbBody"></div>
+  </div>
+</div>
+
+<script>
+// ===== STARS =====
+(function(){
+  const s = document.getElementById('stars');
+  for(let i=0;i<120;i++){
+    const star = document.createElement('div');
+    star.className = 'star';
+    const sz = Math.random()*3+1;
+    star.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${2+Math.random()*3}s;`;
+    s.appendChild(star);
+  }
+})();
+
+// ===== SDG QUESTIONS (43 total, 17 picked randomly each game) =====
+const ALL_SDG_QUESTIONS = [
+  // SDG 1 - No Poverty
+  { sdg: 1, name: "No Poverty", color: "#E5243B", emoji: "💸",
+    question: "SDG 1 is about ending poverty. Which best helps lift people out of poverty?",
+    answers: [
+      {text:"Build walls", symbol:"🧱"}, {text:"Close schools", symbol:"🚫"},
+      {text:"Fair jobs & wages", symbol:"💼"}, {text:"Ban farming", symbol:"🚜"},
+      {text:"Tax the poor", symbol:"💸"}, {text:"Reduce hospitals", symbol:"🏥"}
+    ], correct: 2,
+    explanation: "💸 SDG 1 — No Poverty: Providing fair jobs and wages gives people the means to meet their basic needs. Over 700 million people still live in extreme poverty today. Economic opportunity is the most powerful tool to end it!" },
+  { sdg: 1, name: "No Poverty", color: "#E5243B", emoji: "💸",
+    question: "What % of the world lives on less than $2.15 a day?",
+    answers: [
+      {text:"About 50%", symbol:"📊"}, {text:"About 75%", symbol:"📈"},
+      {text:"About 9%", symbol:"🔟"}, {text:"About 1%", symbol:"📉"},
+      {text:"About 30%", symbol:"🔢"}, {text:"About 60%", symbol:"📋"}
+    ], correct: 2,
+    explanation: "💸 SDG 1 — No Poverty: Around 9% of the world lives in extreme poverty. COVID-19 and conflicts have pushed millions back into poverty. Social protection systems are key to keeping people safe." },
+  { sdg: 1, name: "No Poverty", color: "#E5243B", emoji: "💸",
+    question: "Which group is MOST vulnerable to poverty worldwide?",
+    answers: [
+      {text:"Urban adults", symbol:"🏙️"}, {text:"Tech workers", symbol:"💻"},
+      {text:"Children & rural women", symbol:"👧"}, {text:"Factory owners", symbol:"🏭"},
+      {text:"University students", symbol:"🎓"}, {text:"City managers", symbol:"🏢"}
+    ], correct: 2,
+    explanation: "💸 SDG 1 — No Poverty: Children and women in rural areas face the highest poverty rates. Girls are especially vulnerable due to less access to education and economic opportunity." },
+
+  // SDG 2 - Zero Hunger
+  { sdg: 2, name: "Zero Hunger", color: "#DDA63A", emoji: "🌾",
+    question: "SDG 2 wants to end hunger. What is most needed to feed everyone?",
+    answers: [
+      {text:"More factories", symbol:"🏭"}, {text:"Sustainable farming", symbol:"🌱"},
+      {text:"More cars", symbol:"🚗"}, {text:"Build malls", symbol:"🏬"},
+      {text:"Burn forests", symbol:"🔥"}, {text:"Print money", symbol:"💵"}
+    ], correct: 1,
+    explanation: "🌾 SDG 2 — Zero Hunger: Sustainable farming protects the environment while producing enough nutritious food for everyone. About 820 million people go to bed hungry every night." },
+  { sdg: 2, name: "Zero Hunger", color: "#DDA63A", emoji: "🌾",
+    question: "How much food produced globally is wasted every year?",
+    answers: [
+      {text:"About 5%", symbol:"📦"}, {text:"About 10%", symbol:"🗑️"},
+      {text:"About 1%", symbol:"📉"}, {text:"About 33%", symbol:"🔢"},
+      {text:"About 50%", symbol:"⚠️"}, {text:"About 20%", symbol:"📊"}
+    ], correct: 3,
+    explanation: "🌾 SDG 2 — Zero Hunger: About one-third (33%) of all food produced globally is lost or wasted. If we reduced food waste, we could feed every hungry person on Earth!" },
+  { sdg: 2, name: "Zero Hunger", color: "#DDA63A", emoji: "🌾",
+    question: "What does 'food insecurity' mean?",
+    answers: [
+      {text:"Locked fridges", symbol:"🔒"}, {text:"Expired food", symbol:"⏰"},
+      {text:"No reliable food access", symbol:"🍽️"}, {text:"Pricey restaurants", symbol:"🍴"},
+      {text:"Food allergies", symbol:"⚕️"}, {text:"Too much food", symbol:"🍱"}
+    ], correct: 2,
+    explanation: "🌾 SDG 2 — Zero Hunger: Food insecurity means not having reliable access to enough nutritious food. It affects over 2 billion people worldwide, caused by poverty, conflict, and climate change." },
+
+  // SDG 3 - Good Health
+  { sdg: 3, name: "Good Health", color: "#4C9F38", emoji: "💊",
+    question: "What simple habit best prevents the spread of diseases?",
+    answers: [
+      {text:"Eat junk food", symbol:"🍔"}, {text:"Skip sleep", symbol:"😴"},
+      {text:"Wash hands often", symbol:"🧼"}, {text:"Stay indoors always", symbol:"🏠"},
+      {text:"Avoid fruits", symbol:"🍎"}, {text:"Drink soda", symbol:"🥤"}
+    ], correct: 2,
+    explanation: "💊 SDG 3 — Good Health: Regular handwashing is one of the cheapest, most effective ways to prevent diseases. It can reduce respiratory infections by 16–21%!" },
+  { sdg: 3, name: "Good Health", color: "#4C9F38", emoji: "💊",
+    question: "What does Universal Health Coverage (UHC) mean?",
+    answers: [
+      {text:"Health for the rich only", symbol:"💰"}, {text:"Private hospitals only", symbol:"🏥"},
+      {text:"Healthcare for all without hardship", symbol:"🌍"}, {text:"Free meds everywhere", symbol:"💊"},
+      {text:"Adults only get care", symbol:"👴"}, {text:"City hospitals only", symbol:"🏙️"}
+    ], correct: 2,
+    explanation: "💊 SDG 3 — Good Health: Universal Health Coverage means everyone can access quality health services without financial ruin. At least half the world still lacks full coverage." },
+  { sdg: 3, name: "Good Health", color: "#4C9F38", emoji: "💊",
+    question: "What is the leading cause of death SDG 3 aims to reduce?",
+    answers: [
+      {text:"Bee stings", symbol:"🐝"}, {text:"Falling down", symbol:"🤕"},
+      {text:"Heart disease & cancer", symbol:"❤️"}, {text:"Sunburn", symbol:"☀️"},
+      {text:"Common cold", symbol:"🤧"}, {text:"Hiccups", symbol:"😮"}
+    ], correct: 2,
+    explanation: "💊 SDG 3 — Good Health: Non-communicable diseases like heart disease, cancer, and diabetes cause 74% of all deaths globally. Many are preventable through healthy lifestyles and better healthcare." },
+
+  // SDG 4 - Quality Education
+  { sdg: 4, name: "Quality Education", color: "#C5192D", emoji: "📚",
+    question: "Why is it important that EVERY child goes to school?",
+    answers: [
+      {text:"Makes them tired", symbol:"😴"}, {text:"Keeps them busy", symbol:"⏰"},
+      {text:"Breaks cycle of poverty", symbol:"📚"}, {text:"Schools sell food", symbol:"🍎"},
+      {text:"To fill buildings", symbol:"🏫"}, {text:"Teachers need jobs", symbol:"👩‍🏫"}
+    ], correct: 2,
+    explanation: "📚 SDG 4 — Quality Education: Education is the great equaliser. One extra year of schooling can increase a person's income by up to 10%! Around 244 million children are still out of school." },
+  { sdg: 4, name: "Quality Education", color: "#C5192D", emoji: "📚",
+    question: "What does 'inclusive education' mean?",
+    answers: [
+      {text:"Only rich kids learn", symbol:"💰"}, {text:"City schools only", symbol:"🏙️"},
+      {text:"Learning for ALL backgrounds", symbol:"🌈"}, {text:"Boys-only schools", symbol:"👦"},
+      {text:"One subject only", symbol:"📖"}, {text:"Online only", symbol:"💻"}
+    ], correct: 2,
+    explanation: "📚 SDG 4 — Quality Education: Inclusive education ensures every child — regardless of gender, disability, or wealth — can learn in a supportive environment. It reduces inequality and builds tolerant societies." },
+  { sdg: 4, name: "Quality Education", color: "#C5192D", emoji: "📚",
+    question: "How many adults worldwide cannot read or write?",
+    answers: [
+      {text:"About 1 million", symbol:"📉"}, {text:"About 10,000", symbol:"🔢"},
+      {text:"About 10 million", symbol:"📊"}, {text:"About 763 million", symbol:"🌍"},
+      {text:"About 10 billion", symbol:"📈"}, {text:"About 500", symbol:"🔡"}
+    ], correct: 3,
+    explanation: "📚 SDG 4 — Quality Education: Around 763 million adults lack basic literacy. Two-thirds are women. Literacy unlocks access to jobs, healthcare, and civic participation." },
+
+  // SDG 5 - Gender Equality
+  { sdg: 5, name: "Gender Equality", color: "#FF3A21", emoji: "⚖️",
+    question: "Which action best supports girls' rights worldwide?",
+    answers: [
+      {text:"Ban girls from sports", symbol:"⛔"}, {text:"Allow child marriage", symbol:"💍"},
+      {text:"Girls go to school", symbol:"📚"}, {text:"Girls do housework only", symbol:"🏠"},
+      {text:"Limit women's jobs", symbol:"🚫"}, {text:"Girls stay home", symbol:"🏡"}
+    ], correct: 2,
+    explanation: "⚖️ SDG 5 — Gender Equality: Educating girls is one of the highest-return investments in development. When girls are educated, communities become healthier and economies grow!" },
+  { sdg: 5, name: "Gender Equality", color: "#FF3A21", emoji: "⚖️",
+    question: "What % of parliamentary seats worldwide are held by women?",
+    answers: [
+      {text:"About 75%", symbol:"📊"}, {text:"About 60%", symbol:"📈"},
+      {text:"About 26%", symbol:"📋"}, {text:"About 50%", symbol:"⚖️"},
+      {text:"About 10%", symbol:"📉"}, {text:"About 90%", symbol:"🏆"}
+    ], correct: 2,
+    explanation: "⚖️ SDG 5 — Gender Equality: Women hold about 26% of parliamentary seats globally — still far from equal. SDG 5 calls for women's full participation in political and economic life." },
+  { sdg: 5, name: "Gender Equality", color: "#FF3A21", emoji: "⚖️",
+    question: "What is gender-based violence (GBV)?",
+    answers: [
+      {text:"A sport", symbol:"⚽"}, {text:"A cooking method", symbol:"🍳"},
+      {text:"Harm based on gender", symbol:"✊"}, {text:"A type of music", symbol:"🎵"},
+      {text:"A school subject", symbol:"📖"}, {text:"A dance style", symbol:"💃"}
+    ], correct: 2,
+    explanation: "⚖️ SDG 5 — Gender Equality: Gender-based violence is harm directed at someone because of their gender. 1 in 3 women worldwide experiences it. SDG 5 calls for eliminating all such violence." },
+
+  // SDG 6 - Clean Water
+  { sdg: 6, name: "Clean Water", color: "#26BDE2", emoji: "💧",
+    question: "What is the best way to keep water sources clean?",
+    answers: [
+      {text:"Dump waste in rivers", symbol:"🚯"}, {text:"Use more plastic", symbol:"🧴"},
+      {text:"Treat waste first", symbol:"💧"}, {text:"Drain all lakes", symbol:"🏞️"},
+      {text:"Ignore pollution", symbol:"🙈"}, {text:"Leave taps running", symbol:"🚰"}
+    ], correct: 2,
+    explanation: "💧 SDG 6 — Clean Water: Treating wastewater before it enters rivers and oceans protects both nature and human health. 2 billion people still lack safe drinking water." },
+  { sdg: 6, name: "Clean Water", color: "#26BDE2", emoji: "💧",
+    question: "How much of Earth's water is available as fresh drinking water?",
+    answers: [
+      {text:"About 70%", symbol:"🌊"}, {text:"About 50%", symbol:"💦"},
+      {text:"Less than 3%", symbol:"💦"}, {text:"About 25%", symbol:"📊"},
+      {text:"About 10%", symbol:"📉"}, {text:"About 40%", symbol:"📈"}
+    ], correct: 2,
+    explanation: "💧 SDG 6 — Clean Water: Less than 3% of Earth's water is fresh, and most is frozen! Only a tiny fraction is accessible for drinking. Water conservation is critical." },
+
+  // SDG 7 - Clean Energy
+  { sdg: 7, name: "Clean Energy", color: "#FCC30B", emoji: "⚡",
+    question: "Which energy source is renewable AND clean?",
+    answers: [
+      {text:"Coal", symbol:"🪨"}, {text:"Petrol", symbol:"⛽"},
+      {text:"Diesel", symbol:"🛢️"}, {text:"Solar power", symbol:"☀️"},
+      {text:"Kerosene", symbol:"🕯️"}, {text:"Natural gas", symbol:"💨"}
+    ], correct: 3,
+    explanation: "⚡ SDG 7 — Clean Energy: Solar power uses the sun — completely free with zero pollution! About 800 million people still lack electricity. Clean energy can reach everyone!" },
+  { sdg: 7, name: "Clean Energy", color: "#FCC30B", emoji: "⚡",
+    question: "What does 'energy efficiency' mean?",
+    answers: [
+      {text:"Using more power", symbol:"⬆️"}, {text:"Burning more fuel", symbol:"🔥"},
+      {text:"Same result, less energy", symbol:"💡"}, {text:"Only using candles", symbol:"🕯️"},
+      {text:"Bigger power plants", symbol:"🏭"}, {text:"Paying less tax", symbol:"💸"}
+    ], correct: 2,
+    explanation: "⚡ SDG 7 — Clean Energy: Energy efficiency means getting the same output while using less energy. LED bulbs, insulation, and efficient appliances all help reduce consumption." },
+
+  // SDG 8 - Decent Work
+  { sdg: 8, name: "Decent Work", color: "#A21942", emoji: "💼",
+    question: "What makes a job 'decent' according to the UN?",
+    answers: [
+      {text:"Very long hours", symbol:"⏰"}, {text:"No breaks allowed", symbol:"🚫"},
+      {text:"Fair pay & safety", symbol:"💼"}, {text:"Unpaid overtime", symbol:"😤"},
+      {text:"Child labour OK", symbol:"👦"}, {text:"No contracts", symbol:"📝"}
+    ], correct: 2,
+    explanation: "💼 SDG 8 — Decent Work: A decent job means fair wages, safe conditions, and worker rights. Globally, 160 million children are still in child labour. Everyone deserves dignified work!" },
+  { sdg: 8, name: "Decent Work", color: "#A21942", emoji: "💼",
+    question: "How much more likely are young people to be unemployed vs adults?",
+    answers: [
+      {text:"Same as adults", symbol:"⚖️"}, {text:"Twice as likely", symbol:"📊"},
+      {text:"Three times as likely", symbol:"📊"}, {text:"Half as likely", symbol:"📉"},
+      {text:"Five times as likely", symbol:"📈"}, {text:"Ten times as likely", symbol:"🔢"}
+    ], correct: 2,
+    explanation: "💼 SDG 8 — Decent Work: Young people (15–24) are nearly 3 times more likely to be unemployed than adults. SDG 8 targets youth employment through training and entrepreneurship support." },
+
+  // SDG 9 - Industry & Innovation
+  { sdg: 9, name: "Industry & Innovation", color: "#FD6925", emoji: "🏭",
+    question: "Which technology helps developing countries most?",
+    answers: [
+      {text:"More coal mines", symbol:"⛏️"}, {text:"Better roads only", symbol:"🛣️"},
+      {text:"Affordable mobile internet", symbol:"📱"}, {text:"Bigger factories", symbol:"🏭"},
+      {text:"More paper", symbol:"📄"}, {text:"Fax machines", symbol:"📠"}
+    ], correct: 2,
+    explanation: "🏭 SDG 9 — Industry & Innovation: Affordable internet connects people to education, markets, and opportunities. Sustainable industrialisation can create jobs while protecting the planet." },
+  { sdg: 9, name: "Industry & Innovation", color: "#FD6925", emoji: "🏭",
+    question: "What share of global CO₂ emissions comes from industry?",
+    answers: [
+      {text:"Less than 1%", symbol:"📉"}, {text:"About 5%", symbol:"📊"},
+      {text:"About 23%", symbol:"🏗️"}, {text:"About 80%", symbol:"📈"},
+      {text:"About 50%", symbol:"⚠️"}, {text:"About 10%", symbol:"🔢"}
+    ], correct: 2,
+    explanation: "🏭 SDG 9 — Industry & Innovation: Industry accounts for about 23% of global CO₂ emissions. SDG 9 promotes sustainable industrialisation using clean technologies and resource efficiency." },
+
+  // SDG 10 - Reduced Inequality
+  { sdg: 10, name: "Reduced Inequality", color: "#DD1367", emoji: "🤝",
+    question: "What is the most direct way to reduce rich–poor inequality?",
+    answers: [
+      {text:"Cut poor people's food", symbol:"🍽️"}, {text:"Build luxury hotels", symbol:"🏨"},
+      {text:"Progressive tax & services", symbol:"⚖️"}, {text:"Ignore rural areas", symbol:"🙈"},
+      {text:"Remove minimum wage", symbol:"💸"}, {text:"Stop education", symbol:"📚"}
+    ], correct: 2,
+    explanation: "🤝 SDG 10 — Reduced Inequality: Progressive taxation combined with social services helps lift disadvantaged communities. The richest 1% own more than twice the wealth of the bottom 50%!" },
+  { sdg: 10, name: "Reduced Inequality", color: "#DD1367", emoji: "🤝",
+    question: "What is the 'income inequality' problem SDG 10 addresses?",
+    answers: [
+      {text:"Rich and poor earn equally", symbol:"⚖️"}, {text:"Everyone is equally poor", symbol:"😢"},
+      {text:"The wealth gap keeps growing", symbol:"📈"}, {text:"Only countries are unequal", symbol:"🌍"},
+      {text:"Inequality ended in 2000", symbol:"📅"}, {text:"All wages are fixed", symbol:"💰"}
+    ], correct: 2,
+    explanation: "🤝 SDG 10 — Reduced Inequality: The gap between the richest and poorest keeps widening. The top 1% captured nearly twice as much new wealth as the rest of the world since 2020." },
+
+  // SDG 11 - Sustainable Cities
+  { sdg: 11, name: "Sustainable Cities", color: "#FD9D24", emoji: "🏙️",
+    question: "What makes a city more liveable and sustainable?",
+    answers: [
+      {text:"More private cars", symbol:"🚗"}, {text:"Tear down parks", symbol:"🌳"},
+      {text:"Public transport & green spaces", symbol:"🏙️"}, {text:"Bigger highways only", symbol:"🛣️"},
+      {text:"More air pollution", symbol:"💨"}, {text:"No waste collection", symbol:"🗑️"}
+    ], correct: 2,
+    explanation: "🏙️ SDG 11 — Sustainable Cities: Green spaces and good public transport reduce pollution and improve mental health. By 2050, nearly 70% of the world's population will live in cities!" },
+  { sdg: 11, name: "Sustainable Cities", color: "#FD9D24", emoji: "🏙️",
+    question: "How many people worldwide live in slums or informal settlements?",
+    answers: [
+      {text:"About 1 million", symbol:"📉"}, {text:"About 50,000", symbol:"🔢"},
+      {text:"Over 1 billion", symbol:"🌆"}, {text:"About 5 million", symbol:"📊"},
+      {text:"About 10 billion", symbol:"📈"}, {text:"About 200 million", symbol:"🌍"}
+    ], correct: 2,
+    explanation: "🏙️ SDG 11 — Sustainable Cities: Over 1 billion people live in slums worldwide. SDG 11 aims to upgrade slums and ensure affordable, safe housing for all." },
+
+  // SDG 12 - Responsible Consumption
+  { sdg: 12, name: "Responsible Consumption", color: "#BF8B2E", emoji: "♻️",
+    question: "What everyday action reduces waste most?",
+    answers: [
+      {text:"Buy more every day", symbol:"🛒"}, {text:"Throw food away", symbol:"🗑️"},
+      {text:"Reduce, Reuse & Recycle", symbol:"♻️"}, {text:"Use single-use plastic", symbol:"🧴"},
+      {text:"Leave lights on", symbol:"💡"}, {text:"Buy new phones monthly", symbol:"📱"}
+    ], correct: 2,
+    explanation: "♻️ SDG 12 — Responsible Consumption: The 3Rs cut waste dramatically. 1/3 of all food produced globally is wasted. Responsible consumption could feed every hungry person on Earth!" },
+  { sdg: 12, name: "Responsible Consumption", color: "#BF8B2E", emoji: "♻️",
+    question: "What is a 'circular economy'?",
+    answers: [
+      {text:"A round shopping mall", symbol:"🏬"}, {text:"Economy in a circle shape", symbol:"⭕"},
+      {text:"Reuse, repair & recycle products", symbol:"♻️"}, {text:"Buying things in circles", symbol:"🔄"},
+      {text:"A financial loop", symbol:"💱"}, {text:"Round coins only", symbol:"🪙"}
+    ], correct: 2,
+    explanation: "♻️ SDG 12 — Responsible Consumption: A circular economy keeps materials in use as long as possible through reuse, repair, and recycling — contrasting with the 'take-make-waste' model." },
+
+  // SDG 13 - Climate Action
+  { sdg: 13, name: "Climate Action", color: "#3F7E44", emoji: "🌡️",
+    question: "What is the main cause of global warming?",
+    answers: [
+      {text:"Too many trees", symbol:"🌳"}, {text:"Drinking water", symbol:"💧"},
+      {text:"Burning fossil fuels", symbol:"🔥"}, {text:"Eating vegetables", symbol:"🥦"},
+      {text:"Riding bicycles", symbol:"🚲"}, {text:"Planting flowers", symbol:"🌸"}
+    ], correct: 2,
+    explanation: "🌡️ SDG 13 — Climate Action: Burning fossil fuels releases CO₂ that traps heat. Earth's temperature has already risen by over 1°C. Switching to clean energy can slow climate change!" },
+  { sdg: 13, name: "Climate Action", color: "#3F7E44", emoji: "🌡️",
+    question: "What is the Paris Agreement?",
+    answers: [
+      {text:"A French cooking treaty", symbol:"🍳"}, {text:"A fashion deal", symbol:"👗"},
+      {text:"Limit warming to 1.5–2°C", symbol:"🌡️"}, {text:"A Paris tourism plan", symbol:"🗼"},
+      {text:"A French education law", symbol:"📚"}, {text:"A city transport plan", symbol:"🚇"}
+    ], correct: 2,
+    explanation: "🌡️ SDG 13 — Climate Action: The Paris Agreement (2015) commits countries to limiting global warming to 1.5–2°C above pre-industrial levels through national climate action plans." },
+  { sdg: 13, name: "Climate Action", color: "#3F7E44", emoji: "🌡️",
+    question: "What everyday action has the biggest individual climate impact?",
+    answers: [
+      {text:"Using a different pen", symbol:"🖊️"}, {text:"Changing phone cases", symbol:"📱"},
+      {text:"Eat less meat & fly less", symbol:"🌱"}, {text:"Different shoes", symbol:"👟"},
+      {text:"Sleeping more", symbol:"😴"}, {text:"Watching less TV", symbol:"📺"}
+    ], correct: 2,
+    explanation: "🌡️ SDG 13 — Climate Action: Eating less meat and reducing flights are among the highest-impact personal choices. Beef production alone generates more emissions than all the world's cars!" },
+
+  // SDG 14 - Life Below Water
+  { sdg: 14, name: "Life Below Water", color: "#0A97D9", emoji: "🐋",
+    question: "What is the biggest threat to ocean health?",
+    answers: [
+      {text:"Fish swimming", symbol:"🐟"}, {text:"Waves crashing", symbol:"🌊"},
+      {text:"Plastic & overfishing", symbol:"🐋"}, {text:"Coral growing", symbol:"🪸"},
+      {text:"Dolphins playing", symbol:"🐬"}, {text:"Rain falling", symbol:"🌧️"}
+    ], correct: 2,
+    explanation: "🌊 SDG 14 — Life Below Water: Plastic pollution and overfishing are destroying ocean ecosystems. Over 8 million tonnes of plastic enter oceans yearly! Oceans produce 50% of Earth's oxygen." },
+  { sdg: 14, name: "Life Below Water", color: "#0A97D9", emoji: "🐋",
+    question: "What are coral reefs and why do they matter?",
+    answers: [
+      {text:"Underwater roads", symbol:"🛣️"}, {text:"Decorative rocks", symbol:"🪨"},
+      {text:"Ecosystems for 25% of species", symbol:"🪸"}, {text:"Types of fish", symbol:"🐠"},
+      {text:"Underwater volcanoes", symbol:"🌋"}, {text:"Floating islands", symbol:"🏝️"}
+    ], correct: 2,
+    explanation: "🌊 SDG 14 — Life Below Water: Coral reefs support 25% of all marine species despite covering less than 1% of the ocean floor. Warming oceans are bleaching and killing them rapidly." },
+
+  // SDG 15 - Life on Land
+  { sdg: 15, name: "Life on Land", color: "#56C02B", emoji: "🌳",
+    question: "Why are forests so important for life on land?",
+    answers: [
+      {text:"They look pretty", symbol:"🌸"}, {text:"They block views", symbol:"🚧"},
+      {text:"Oxygen & shelter wildlife", symbol:"🌳"}, {text:"They cause rain only", symbol:"🌧️"},
+      {text:"They block sunlight", symbol:"☀️"}, {text:"They slow cars", symbol:"🚗"}
+    ], correct: 2,
+    explanation: "🌳 SDG 15 — Life on Land: Forests produce oxygen, absorb CO₂, and are home to 80% of land species. Every year we lose 10 million hectares of forest. Protecting nature protects our future!" },
+  { sdg: 15, name: "Life on Land", color: "#56C02B", emoji: "🌳",
+    question: "What is biodiversity and why does it matter?",
+    answers: [
+      {text:"A type of diet", symbol:"🥗"}, {text:"A science experiment", symbol:"🔬"},
+      {text:"Variety of life on Earth", symbol:"🌍"}, {text:"A type of farming", symbol:"🌾"},
+      {text:"A political system", symbol:"🏛️"}, {text:"A building material", symbol:"🧱"}
+    ], correct: 2,
+    explanation: "🌳 SDG 15 — Life on Land: Biodiversity means the variety of all living things. Healthy ecosystems provide clean air, water, food, and medicine. We're losing species 1,000x faster than the natural rate." },
+
+  // SDG 16 - Peace & Justice
+  { sdg: 16, name: "Peace & Justice", color: "#00689D", emoji: "☮️",
+    question: "What helps build a peaceful society?",
+    answers: [
+      {text:"More weapons", symbol:"⚔️"}, {text:"Ignoring laws", symbol:"🚫"},
+      {text:"Transparent governments", symbol:"☮️"}, {text:"Hiding corruption", symbol:"🙈"},
+      {text:"Banning voting", symbol:"🗳️"}, {text:"Secret police", symbol:"🕵️"}
+    ], correct: 2,
+    explanation: "☮️ SDG 16 — Peace & Justice: Transparent governments that uphold the rule of law build trust and stability. Over 1 billion people live in fragile states affected by conflict." },
+  { sdg: 16, name: "Peace & Justice", color: "#00689D", emoji: "☮️",
+    question: "What does 'access to justice' mean for everyone?",
+    answers: [
+      {text:"Free lawyers for judges", symbol:"👨‍⚖️"}, {text:"Justice for judges only", symbol:"⚖️"},
+      {text:"Fair legal help for all", symbol:"🏛️"}, {text:"Lawyers get free food", symbol:"🍽️"},
+      {text:"Courts open late only", symbol:"🌙"}, {text:"Laws for wealthy only", symbol:"💰"}
+    ], correct: 2,
+    explanation: "☮️ SDG 16 — Peace & Justice: Access to justice means everyone — regardless of wealth or background — can seek legal help and fair treatment. Billions globally cannot access the legal system." },
+
+  // SDG 17 - Partnerships
+  { sdg: 17, name: "Partnerships", color: "#19486A", emoji: "🤲",
+    question: "Why must countries work TOGETHER on global goals?",
+    answers: [
+      {text:"To compete more", symbol:"🏆"}, {text:"To spy on each other", symbol:"🕵️"},
+      {text:"Global problems need cooperation", symbol:"🤲"}, {text:"To argue more", symbol:"🗣️"},
+      {text:"To build more walls", symbol:"🧱"}, {text:"To stay separate", symbol:"🚧"}
+    ], correct: 2,
+    explanation: "🤲 SDG 17 — Partnerships: Climate change, poverty, and pandemics don't respect borders. No country can solve these alone! Collaboration and shared resources can achieve all 17 goals." },
+  { sdg: 17, name: "Partnerships", color: "#19486A", emoji: "🤲",
+    question: "What is Official Development Assistance (ODA)?",
+    answers: [
+      {text:"A sports award", symbol:"🥇"}, {text:"A cooking show", symbol:"👨‍🍳"},
+      {text:"Aid from rich to poor nations", symbol:"🌍"}, {text:"A type of visa", symbol:"🛂"},
+      {text:"A military alliance", symbol:"⚔️"}, {text:"A tourism plan", symbol:"✈️"}
+    ], correct: 2,
+    explanation: "🤲 SDG 17 — Partnerships: ODA is money wealthy nations provide to developing countries. SDG 17 calls on rich countries to meet the target of giving 0.7% of their national income as aid." },
+  { sdg: 17, name: "Partnerships", color: "#19486A", emoji: "🤲",
+    question: "Why is good data important for achieving the SDGs?",
+    answers: [
+      {text:"It looks impressive", symbol:"✨"}, {text:"Data has no use", symbol:"🚫"},
+      {text:"Tracks progress & guides decisions", symbol:"📊"}, {text:"Statistics are decorative", symbol:"🎨"},
+      {text:"Numbers slow things down", symbol:"⏰"}, {text:"Data confuses people", symbol:"😕"}
+    ], correct: 2,
+    explanation: "🤲 SDG 17 — Partnerships: You can't manage what you don't measure! Reliable data helps track progress and make evidence-based decisions. SDG 17 calls for strengthening data capacity in developing nations." },
+];
+
+// Pick 17 random questions (one per SDG if possible, else truly random)
+function pickRandomQuestions() {
+  // Group by SDG
+  const bySDG = {};
+  ALL_SDG_QUESTIONS.forEach(q => {
+    if (!bySDG[q.sdg]) bySDG[q.sdg] = [];
+    bySDG[q.sdg].push(q);
+  });
+  // Pick one random question per SDG (covers all 17 SDGs)
+  const picked = [];
+  for (let sdg = 1; sdg <= 17; sdg++) {
+    if (bySDG[sdg] && bySDG[sdg].length > 0) {
+      const pool = bySDG[sdg];
+      picked.push(pool[Math.floor(Math.random() * pool.length)]);
+    }
+  }
+  // Shuffle the 17 picked questions
+  for (let i = picked.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [picked[i], picked[j]] = [picked[j], picked[i]];
+  }
+  return picked;
+}
+
+let SDG_QUESTIONS = ALL_SDG_QUESTIONS.slice(0, 17); // placeholder, replaced on game init
+
+// ===== GAME STATE =====
+let gameMode = 'single';
+let currentQ = 0;
+let ropePos = 0;
+let timer = null;
+let timeLeft = 30;
+let answered = false;
+let playerNames = { red: 'Red', blue: 'Blue' };
+let scores = { sp: 0, red: 0, blue: 0 };
+let incorrectCount = 0;
+let buzzedPlayer = null;
+let buzzingEnabled = false;
+let chancePassed = false;
+let firstBuzzer = null;
+let activeAnswerer = null;
+
+// ===== CANVAS =====
+let canvas, ctx;
+let animT = 0; // global animation clock in seconds
+let lastRAF = 0;
+
+function initCanvas() {
+  canvas = document.getElementById('tugCanvas');
+  ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth || 800;
+  canvas.height = canvas.offsetHeight || 140;
+  window.addEventListener('resize', () => {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  });
+  // Main animation loop
+  function loop(ts) {
+    const dt = Math.min((ts - lastRAF) / 1000, 0.05); // delta seconds, capped
+    lastRAF = ts;
+    animT += dt;
+    if (document.getElementById('game').classList.contains('active')) drawTug();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+
+// Safe rounded rect helper (ctx.roundRect not in all browsers)
+function rrect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w/2, h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.arcTo(x+w, y, x+w, y+r, r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.arcTo(x+w, y+h, x+w-r, y+h, r);
+  ctx.lineTo(x+r, y+h);
+  ctx.arcTo(x, y+h, x, y+h-r, r);
+  ctx.lineTo(x, y+r);
+  ctx.arcTo(x, y, x+r, y, r);
+  ctx.closePath();
+}
+// Quadratic bezier point
+function bezPt(t, x0, y0, x1, y1, x2, y2) {
+  var mt = 1-t;
+  return { x: mt*mt*x0+2*mt*t*x1+t*t*x2, y: mt*mt*y0+2*mt*t*y1+t*t*y2 };
+}
+
+function drawTug() {
+  if (!ctx) return;
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const cx = W / 2;
+  const ropeY = H * 0.58;
+  const ropeBaseLeft = 72, ropeBaseEnd = W - 72;
+  const maxMove = (ropeBaseEnd - ropeBaseLeft) / 2 - 28;
+
+  // Whole rope shifts: negative ropePos = red winning (rope drags blue toward red/left)
+  const ropeShift = (ropePos / 17) * maxMove;
+  const ropeLeft = ropeBaseLeft + ropeShift;
+  const ropeEnd  = ropeBaseEnd  + ropeShift;
+
+  // Tag stays fixed at the midpoint of the rope (tied to the rope, not the screen)
+  const tagX = (ropeLeft + ropeEnd) / 2;
+
+  // ── zone labels (screen-fixed, always at edges) ──────────
+  ctx.save();
+  ctx.font = 'bold 12px Nunito';
+  ctx.textAlign = 'center';
+  if (gameMode === 'two') {
+    ctx.fillStyle = '#FF3B3B';
+    ctx.fillText('🔴 ' + playerNames.red, ropeBaseLeft + 10, 18);
+    ctx.fillStyle = '#1E90FF';
+    ctx.fillText('🔵 ' + playerNames.blue, ropeBaseEnd - 10, 18);
+  } else {
+    ctx.fillStyle = '#FF5252';
+    ctx.fillText('⚠ DANGER', ropeBaseLeft + 10, 18);
+    ctx.fillStyle = '#00C853';
+    ctx.fillText('🏆 WINNING', ropeBaseEnd - 10, 18);
+  }
+  ctx.restore();
+
+  // ── ground shadow ─────────────────────────────────────────
+  const grd = ctx.createLinearGradient(0, ropeY + 28, 0, ropeY + 46);
+  grd.addColorStop(0, 'rgba(0,0,0,0.18)');
+  grd.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.ellipse(cx, ropeY + 38, W * 0.42, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── danger / winning zone glow (screen-fixed, split at centre) ──
+  const zoneW = maxMove;
+  const leftGrad = ctx.createLinearGradient(ropeBaseLeft, 0, ropeBaseLeft + zoneW, 0);
+  leftGrad.addColorStop(0, 'rgba(255,59,59,0.22)');
+  leftGrad.addColorStop(1, 'rgba(255,59,59,0)');
+  ctx.fillStyle = leftGrad;
+  ctx.fillRect(ropeBaseLeft, ropeY - 22, zoneW, 44);
+
+  const rightGrad = ctx.createLinearGradient(ropeBaseLeft + zoneW, 0, ropeBaseEnd, 0);
+  rightGrad.addColorStop(0, 'rgba(0,200,83,0)');
+  rightGrad.addColorStop(1, 'rgba(0,200,83,0.22)');
+  ctx.fillStyle = rightGrad;
+  ctx.fillRect(ropeBaseLeft + zoneW, ropeY - 22, zoneW, 44);
+
+  // ── centre line ───────────────────────────────────────────
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 4]);
+  ctx.beginPath();
+  ctx.moveTo(cx, ropeY - 28); ctx.lineTo(cx, ropeY + 28);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // ── REALISTIC BRAIDED ROPE ────────────────────────────────
+  // Sag pulses with a slow pull rhythm
+  const pullCycle = Math.sin(animT * 2.6);          // main pull oscillator
+  const sagAmt = 6 + pullCycle * 3;                 // rope goes taut→slack
+  const ctrlY = ropeY + sagAmt;
+  const steps = 180;
+  const twistScroll = animT * 1.8;                  // strands scroll for twist illusion
+
+  // Rope midpoint (control point for sag)
+  const ropeMid = (ropeLeft + ropeEnd) / 2;
+
+  // Helper: point on quadratic bezier
+  function ropePoint(t) {
+    const x = (1-t)*(1-t)*ropeLeft + 2*(1-t)*t*ropeMid + t*t*ropeEnd;
+    const y = (1-t)*(1-t)*ropeY + 2*(1-t)*t*ctrlY + t*t*ropeY;
+    return {x, y};
+  }
+
+  // Soft shadow under rope
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,0,0,0.28)';
+  ctx.lineWidth = 17;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(ropeLeft, ropeY + 3);
+  ctx.quadraticCurveTo(ropeMid, ctrlY + 3, ropeEnd, ropeY + 3);
+  ctx.stroke();
+  ctx.restore();
+
+  // Rope core — 3 layered strands
+  const ropeThick = 11;
+  // Strand colours (warm hemp)
+  const strandPalette = [
+    ['#c8832a','#e8b86d','#a05c1a'],
+    ['#b5752a','#d9a84e','#8c4e12'],
+    ['#d49040','#f0c878','#b06828'],
+  ];
+
+  for (let s = 0; s < 3; s++) {
+    const phase = (s / 3) * Math.PI * 2 + twistScroll;
+    const [dark, light, darker] = strandPalette[s];
+    ctx.save();
+    ctx.lineWidth = ropeThick - 2;
+    ctx.lineCap = 'round';
+
+    // Build path following the bezier + weave offset
+    ctx.beginPath();
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const p = ropePoint(t);
+      const weave = Math.sin(t * Math.PI * 26 + phase) * 3.2;
+      if (i === 0) ctx.moveTo(p.x, p.y + weave);
+      else ctx.lineTo(p.x, p.y + weave);
+    }
+    // Gradient per strand: dark→light→dark
+    const sg = ctx.createLinearGradient(ropeLeft, ropeY - 6, ropeLeft, ropeY + 6);
+    sg.addColorStop(0, darker); sg.addColorStop(0.45, light); sg.addColorStop(1, dark);
+    ctx.strokeStyle = sg;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Rope highlight sheen
+  ctx.save();
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const p = ropePoint(t);
+    const wave = Math.sin(t * Math.PI * 26 + twistScroll) * 2.8 - 3.5;
+    if (i === 0) ctx.moveTo(p.x, p.y + wave);
+    else ctx.lineTo(p.x, p.y + wave);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // Rope twist cross-hatching (wrap lines)
+  ctx.save();
+  ctx.lineWidth = 1.2;
+  ctx.strokeStyle = 'rgba(90,50,10,0.38)';
+  for (let i = 0; i <= steps; i += 3) {
+    const t = i / steps;
+    const p = ropePoint(t);
+    const angle = (t * Math.PI * 26 + twistScroll) % (Math.PI);
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(-1, -5); ctx.lineTo(1, 5);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+
+  // ── RIBBON TAG ────────────────────────────────────────────
+  // Tag bobs on rope with pull rhythm + slight wobble rotation
+  const tagBob    = Math.sin(animT * 2.6) * 2.2;
+  const tagWiggle = Math.sin(animT * 5.1) * 0.055;
+  const tagY = ropeY + tagBob;
+  const tagColor1 = ropePos > 0 ? '#FF1744' : ropePos < 0 ? '#0d47a1' : '#B8860B';
+  const tagColor2 = ropePos > 0 ? '#FF6B6B' : ropePos < 0 ? '#1E90FF' : '#FFD600';
+  const tagBorder = ropePos > 0 ? '#ff8a80' : ropePos < 0 ? '#64b5f6' : '#FFF176';
+
+  ctx.save();
+  ctx.translate(tagX, tagY);
+  ctx.rotate(tagWiggle);
+
+  // Glow behind ribbon
+  ctx.shadowColor = tagColor2;
+  ctx.shadowBlur = 18;
+
+  // ── ribbon tails (left) ──
+  // Left tail top
+  ctx.fillStyle = tagColor1;
+  ctx.beginPath();
+  ctx.moveTo(-6, -2);
+  ctx.bezierCurveTo(-14, -8, -22, -14, -28, -8);
+  ctx.bezierCurveTo(-26, -2, -18, 0, -6, 2);
+  ctx.closePath();
+  ctx.fill();
+  // Left tail bottom
+  ctx.beginPath();
+  ctx.moveTo(-6, 2);
+  ctx.bezierCurveTo(-18, 0, -26, 2, -28, 8);
+  ctx.bezierCurveTo(-22, 14, -14, 8, -6, 2);
+  ctx.closePath();
+  ctx.fill();
+  // Left tail sheen
+  ctx.fillStyle = 'rgba(255,255,255,0.14)';
+  ctx.beginPath();
+  ctx.moveTo(-8, -1);
+  ctx.bezierCurveTo(-14, -6, -20, -10, -24, -6);
+  ctx.bezierCurveTo(-20, -3, -14, -1, -8, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // ── ribbon tails (right) ──
+  ctx.fillStyle = tagColor1;
+  ctx.beginPath();
+  ctx.moveTo(6, -2);
+  ctx.bezierCurveTo(14, -8, 22, -14, 28, -8);
+  ctx.bezierCurveTo(26, -2, 18, 0, 6, 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(6, 2);
+  ctx.bezierCurveTo(18, 0, 26, 2, 28, 8);
+  ctx.bezierCurveTo(22, 14, 14, 8, 6, 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.14)';
+  ctx.beginPath();
+  ctx.moveTo(8, -1);
+  ctx.bezierCurveTo(14, -6, 20, -10, 24, -6);
+  ctx.bezierCurveTo(20, -3, 14, -1, 8, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // ── ribbon loops (left bow) ──
+  const loopGrad1 = ctx.createRadialGradient(-14, -10, 2, -14, -10, 16);
+  loopGrad1.addColorStop(0, tagColor2);
+  loopGrad1.addColorStop(1, tagColor1);
+  ctx.fillStyle = loopGrad1;
+  ctx.beginPath();
+  ctx.ellipse(-13, -9, 12, 8, -0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = tagBorder;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // ── ribbon loops (right bow) ──
+  const loopGrad2 = ctx.createRadialGradient(14, -10, 2, 14, -10, 16);
+  loopGrad2.addColorStop(0, tagColor2);
+  loopGrad2.addColorStop(1, tagColor1);
+  ctx.fillStyle = loopGrad2;
+  ctx.beginPath();
+  ctx.ellipse(13, -9, 12, 8, 0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = tagBorder;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // ── bottom loops ──
+  ctx.fillStyle = loopGrad1;
+  ctx.beginPath();
+  ctx.ellipse(-13, 9, 12, 7, 0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = tagBorder; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = loopGrad2;
+  ctx.beginPath();
+  ctx.ellipse(13, 9, 12, 7, -0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = tagBorder; ctx.lineWidth = 1; ctx.stroke();
+
+  // ── centre knot ──
+  ctx.shadowBlur = 0;
+  const knotGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, 11);
+  knotGrad.addColorStop(0, tagColor2);
+  knotGrad.addColorStop(0.6, tagColor1);
+  knotGrad.addColorStop(1, 'rgba(0,0,0,0.4)');
+  ctx.fillStyle = knotGrad;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 10, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = tagBorder;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // Knot highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(-2, -3, 4, 3, -0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+
+  // ── DRAW CHARACTERS ──────────────────────────────────────
+  // Characters stand at their rope end — clamp so they never go off-screen
+  const charMargin = 52; // minimum distance from canvas edge
+  const redX  = Math.max(charMargin, Math.min(W - charMargin, ropeLeft - 4));
+  const blueX = Math.max(charMargin, Math.min(W - charMargin, ropeEnd + 4));
+  drawCharacter(redX,  ropeY, 'red',  gameMode === 'two' ? playerNames.red  : 'You',     pullCycle, ropePos > 0);
+  drawCharacter(blueX, ropeY, 'blue', gameMode === 'two' ? playerNames.blue : 'Winning', -pullCycle, ropePos < 0);
+}
+
+// ── Cartoonish character with lean/strain expression ─────
+function drawCharacter(x, y, color, label, pullCycle, isBeingDragged) {
+  pullCycle = pullCycle || 0;
+  isBeingDragged = isBeingDragged || false;
+  const isLeft = (color === 'red');
+  const dir = isLeft ? 1 : -1;
+  const col    = color === 'red' ? '#FF3B3B' : '#1E90FF';
+  const shirt  = color === 'red' ? '#D50000' : '#0D47A1';
+  const pants  = color === 'red' ? '#6a0000' : '#003c8f';
+  const shoes  = color === 'red' ? '#3a0000' : '#002171';
+  const skin   = '#FDBCB4';
+  const skinD  = '#d4886a';
+  const hair   = color === 'red' ? '#3b1f00' : '#111133';
+
+  // Winner: leans back hard and plants feet. Loser: stumbles forward, off-balance.
+  const dragIntensity = Math.abs(ropePos) / 17; // 0..1
+  const lean = isBeingDragged
+    ? -(dragIntensity * 0.45 + Math.sin(animT * 6) * 0.08)   // stumbling lean toward rope
+    : (dragIntensity * 0.32 + 0.04);                          // winning lean away from rope
+
+  // Animation offsets from pull cycle
+  const bodyBob   = isBeingDragged
+    ? Math.sin(animT * 7) * 3 * dragIntensity                 // frantic stumble bob
+    : pullCycle * 2.5;
+  const armPull   = isBeingDragged
+    ? Math.sin(animT * 7) * 3                                  // arms flailing
+    : pullCycle * 4;
+  const legStride = isBeingDragged
+    ? Math.sin(animT * 9) * 8 * dragIntensity                  // legs scrambling
+    : pullCycle * 5;
+
+  ctx.save();
+  ctx.translate(x, y + bodyBob);
+  // Winner leans away from rope (dir * lean), loser leans toward rope (-dir * lean)
+  ctx.rotate(isBeingDragged ? dir * lean : dir * lean * -1);
+
+  const sc = 1.08;
+  ctx.scale(sc, sc);
+
+  // ── drop shadow ──
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(dir * 6, 44, 14, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── LEGS with stride ──
+  const stride = Math.abs(ropePos) * 0.8 + 3;
+  ctx.strokeStyle = pants;
+  ctx.lineWidth = 9;
+  ctx.lineCap = 'round';
+  // back leg — animates with pull cycle
+  ctx.beginPath();
+  ctx.moveTo(dir * 3, 16);
+  ctx.quadraticCurveTo(dir * (14 + legStride * 0.4), 28, dir * (18 + legStride * 0.6), 40);
+  ctx.stroke();
+  // front leg — opposite phase
+  ctx.beginPath();
+  ctx.moveTo(dir * -1, 16);
+  ctx.quadraticCurveTo(dir * (-10 - legStride * 0.3), 26, dir * (-8 - legStride * 0.5), 38);
+  ctx.stroke();
+
+  // ── SHOES ──
+  ctx.fillStyle = shoes;
+  ctx.beginPath();
+  ctx.ellipse(dir * 18, 41, 8, 4, isLeft ? 0.2 : -0.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(dir * -8, 39, 8, 4, isLeft ? -0.1 : 0.1, 0, Math.PI * 2);
+  ctx.fill();
+  // shoe highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.beginPath();
+  ctx.ellipse(dir * 18, 39, 5, 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── BELT ──
+  ctx.fillStyle = '#444';
+  ctx.beginPath();
+  rrect(ctx,-12,13,24,5,2);
+  ctx.fill();
+  ctx.fillStyle = '#aaa';
+  ctx.beginPath();
+  rrect(ctx,-4,13.5,8,4,1);
+  ctx.fill();
+
+  // ── SHIRT / TORSO ──
+  const torsoGrad = ctx.createLinearGradient(-13, -8, 13, 14);
+  torsoGrad.addColorStop(0, color === 'red' ? '#FF5252' : '#1E90FF');
+  torsoGrad.addColorStop(1, shirt);
+  ctx.fillStyle = torsoGrad;
+  ctx.beginPath();
+  rrect(ctx,-13,-8,26,23,7);
+  ctx.fill();
+  // collar shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  ctx.beginPath();
+  rrect(ctx,-6,-9,12,7,3);
+  ctx.fill();
+  // "17" logo
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.font = 'bold 8px Nunito';
+  ctx.textAlign = 'center';
+  ctx.fillText('17', 0, 7);
+
+  // ── PULLING ARM (toward rope) — pumps with pull cycle ──
+  ctx.strokeStyle = shirt;
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(dir * -13, 2);
+  ctx.quadraticCurveTo(dir * (-24 + armPull), -2 - Math.abs(armPull) * 0.3, dir * (-26 + armPull), 6);
+  ctx.stroke();
+  // forearm
+  ctx.beginPath();
+  ctx.moveTo(dir * (-26 + armPull), 6);
+  ctx.quadraticCurveTo(dir * (-28 + armPull * 0.5), 12, dir * -24, 16);
+  ctx.stroke();
+  // fist gripping rope
+  ctx.fillStyle = skin;
+  ctx.strokeStyle = skinD;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  rrect(ctx,dir*-30,12,11,10,3);
+  ctx.fill(); ctx.stroke();
+  // knuckle lines
+  ctx.strokeStyle = skinD;
+  ctx.lineWidth = 1;
+  for (let k = 0; k < 3; k++) {
+    ctx.beginPath();
+    ctx.moveTo(dir * -30 + 3 + k * 3, 13);
+    ctx.lineTo(dir * -30 + 3 + k * 3, 21);
+    ctx.stroke();
+  }
+
+  // ── OTHER ARM (back / balance) ──
+  ctx.strokeStyle = shirt;
+  ctx.lineWidth = 7;
+  ctx.beginPath();
+  ctx.moveTo(dir * 13, 2);
+  ctx.quadraticCurveTo(dir * 22, 6, dir * 20, 14);
+  ctx.stroke();
+  ctx.fillStyle = skin;
+  ctx.strokeStyle = skinD;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(dir * 20, 16, 5, 0, Math.PI * 2);
+  ctx.fill(); ctx.stroke();
+
+  // ── NECK ──
+  ctx.fillStyle = skin;
+  ctx.beginPath();
+  rrect(ctx,-4,-14,8,8,2);
+  ctx.fill();
+
+  // ── HEAD ──
+  // head shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.beginPath();
+  ctx.ellipse(1, -13, 15, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // head base
+  const headGrad = ctx.createRadialGradient(-3, -28, 2, 0, -26, 16);
+  headGrad.addColorStop(0, '#ffd5c8');
+  headGrad.addColorStop(1, skinD);
+  ctx.fillStyle = headGrad;
+  ctx.strokeStyle = skinD;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.ellipse(0, -27, 14, 16, 0, 0, Math.PI * 2);
+  ctx.fill(); ctx.stroke();
+  // cheek blush
+  ctx.fillStyle = 'rgba(255,120,100,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(dir * 7, -24, 5, 3.5, 0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(dir * -7, -24, 5, 3.5, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── HAIR ──
+  ctx.fillStyle = hair;
+  ctx.beginPath();
+  ctx.ellipse(0, -38, 14, 7, 0, Math.PI, Math.PI * 2);
+  ctx.fill();
+  // hair spikes
+  ctx.strokeStyle = hair;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  for (let hi = -10; hi <= 10; hi += 5) {
+    ctx.beginPath();
+    ctx.moveTo(hi, -38);
+    ctx.quadraticCurveTo(hi + dir * 1.5, -44, hi + dir * 3, -46);
+    ctx.stroke();
+  }
+  // sideburn
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(dir * -12, -34);
+  ctx.quadraticCurveTo(dir * -15, -28, dir * -13, -22);
+  ctx.stroke();
+
+  // ── EYES ──
+  // whites
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.ellipse(dir * -5, -29, 4.5, 3.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(dir * 4, -29, 4.5, 3.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // iris
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.arc(dir * -5, -29, 2.8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(dir * 4, -29, 2.8, 0, Math.PI * 2);
+  ctx.fill();
+  // pupil
+  ctx.fillStyle = '#111';
+  ctx.beginPath();
+  ctx.arc(dir * -5 + dir * 0.6, -29, 1.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(dir * 4 + dir * 0.6, -29, 1.3, 0, Math.PI * 2);
+  ctx.fill();
+  // eye shine
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.beginPath();
+  ctx.arc(dir * -4.2, -30, 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(dir * 4.8, -30, 1, 0, Math.PI * 2);
+  ctx.fill();
+  // eyebrows (strained/determined)
+  ctx.strokeStyle = hair;
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = 'round';
+  const browTilt = lean * 60 * (isBeingDragged ? -1 : 1);
+  ctx.save();
+  ctx.translate(dir * -5, -34);
+  ctx.rotate(-browTilt * 0.018);
+  ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(4, -1.5); ctx.stroke();
+  ctx.restore();
+  ctx.save();
+  ctx.translate(dir * 4, -34);
+  ctx.rotate(-browTilt * 0.018);
+  ctx.beginPath(); ctx.moveTo(-4, -1.5); ctx.lineTo(4, 0); ctx.stroke();
+  ctx.restore();
+
+  // ── MOUTH (determined grin when winning, panicked when dragged) ──
+  ctx.strokeStyle = '#c06050';
+  ctx.lineWidth = 1.8;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  if (isBeingDragged && dragIntensity > 0.3) {
+    // open mouth panic "O"
+    ctx.ellipse(0, -20, 4, 5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  } else if (!isBeingDragged && Math.abs(ropePos) > 7) {
+    // grit teeth
+    ctx.arc(0, -20, 5, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+  } else {
+    // calm smile
+    ctx.arc(0, -22, 4, 0.3, Math.PI - 0.3);
+    ctx.stroke();
+  }
+
+  // ── SWEAT DROPS — losing player sweats harder ──
+  if (isBeingDragged && dragIntensity > 0.2 || Math.abs(ropePos) >= 10) {
+    const sweatT = (Date.now() / (isBeingDragged ? 400 : 600)) % 1;
+    const sweatAlpha = isBeingDragged ? 0.85 : 0.6;
+    ctx.fillStyle = `rgba(120,180,255,${sweatAlpha - sweatT * 0.5})`;
+    ctx.beginPath();
+    ctx.ellipse(dir * -16 + Math.sin(sweatT * 6) * 2, -32 + sweatT * 12, 2.5, 3.5, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = `rgba(120,180,255,${(sweatAlpha - 0.2) - sweatT * 0.3})`;
+    ctx.beginPath();
+    ctx.ellipse(dir * -10, -36 + sweatT * 10, 1.5, 2.5, -0.1, 0, Math.PI * 2);
+    ctx.fill();
+    if (isBeingDragged) {
+      // extra big drop for panicked player
+      ctx.fillStyle = `rgba(120,180,255,${0.7 - sweatT * 0.6})`;
+      ctx.beginPath();
+      ctx.ellipse(dir * -18, -28 + sweatT * 14, 3, 4.5, 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // ── NAME BADGE ──
+  ctx.shadowBlur = 0;
+  const badgeW = Math.min(label.length * 6.5 + 16, 72);
+  const badgeX = dir > 0 ? -badgeW / 2 : -badgeW / 2;
+  ctx.fillStyle = color === 'red' ? 'rgba(180,0,0,0.75)' : 'rgba(0,40,120,0.75)';
+  ctx.beginPath();
+  rrect(ctx,badgeX,-58,badgeW,14,6);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 8px Nunito';
+  ctx.textAlign = 'center';
+  ctx.fillText(label.length > 8 ? label.slice(0,8)+'.' : label, 0, -47);
+
+  ctx.restore();
+}
+
+// ===== SOUND ENGINE =====
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+let soundEnabled = true;
+let musicEnabled = true;
+let masterVolume = 0.7;
+let musicNode = null;
+let musicGain = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playTone(freq, type, duration, vol=0.4, fadeOut=true) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type; osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol * masterVolume, ctx.currentTime);
+    if (fadeOut) gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + duration);
+  } catch(e){}
+}
+
+function playChord(freqs, type='sine', duration=0.3, vol=0.3) {
+  freqs.forEach(f => playTone(f, type, duration, vol));
+}
+
+const SFX = {
+  click()    { playTone(660, 'sine', 0.1, 0.3); },
+  correct()  { playChord([523,659,784], 'sine', 0.4, 0.35);
+               setTimeout(()=>playChord([659,784,1047],'sine',0.35,0.3),120); },
+  wrong()    { playTone(200,'sawtooth',0.15,0.4); setTimeout(()=>playTone(160,'sawtooth',0.25,0.35),100); },
+  timeout()  { [400,350,300,250].forEach((f,i)=>setTimeout(()=>playTone(f,'square',0.18,0.25),i*110)); },
+  buzz()     { playTone(880,'square',0.08,0.5); },
+  ropeWin()  { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.3,0.4),i*80)); },
+  ropeLose() { [300,250,200,150].forEach((f,i)=>setTimeout(()=>playTone(f,'sawtooth',0.3,0.4),i*80)); },
+  gameWin()  { const melody=[784,988,1175,1568,1175,988,1568];
+               melody.forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.35,0.4),i*130)); },
+  gameLose() { [400,350,280,220].forEach((f,i)=>setTimeout(()=>playTone(f,'sawtooth',0.4,0.35),i*150)); },
+  timerTick(){ playTone(1200,'square',0.05,0.2); },
+  select()   { playTone(440,'sine',0.12,0.35); setTimeout(()=>playTone(550,'sine',0.12,0.3),80); },
+};
+
+function startBgMusic() {
+  if (!musicEnabled || !soundEnabled) return;
+  stopBgMusic();
+  try {
+    const ac = getAudioCtx();
+    musicGain = ac.createGain();
+    musicGain.gain.setValueAtTime(0.0, ac.currentTime);
+    musicGain.gain.linearRampToValueAtTime(0.18 * masterVolume, ac.currentTime + 0.4);
+    musicGain.connect(ac.destination);
+
+    const BPM = 128, BEAT = 60 / BPM, BAR = BEAT * 4;
+
+    const bassLine = [
+      { note: 65.41, beats: 1 }, { note: 65.41, beats: 0.5 }, { note: 73.42, beats: 0.5 },
+      { note: 98.00, beats: 1 }, { note: 87.31, beats: 1 },
+    ];
+
+    const melNotes = [523,659,784,659,698,784,880,784,  659,523,587,659,523,440,494,523];
+
+    const chords = [
+      [523,659,784], [440,523,659], [523,698,880], [392,494,659]
+    ];
+
+    let bar = 0;
+    let melStep = 0;
+
+    function scheduleBar(startTime) {
+      if (!musicEnabled || !soundEnabled) return;
+
+      const bG = ac.createGain();
+      bG.gain.value = 1;
+      bG.connect(musicGain);
+
+      let bassT = startTime;
+      bassLine.forEach(b => {
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        const filt = ac.createBiquadFilter();
+        filt.type = 'lowpass'; filt.frequency.value = 280;
+        o.type = 'square';
+        o.frequency.value = b.note;
+        o.connect(filt); filt.connect(g); g.connect(musicGain);
+        g.gain.setValueAtTime(0.22 * masterVolume, bassT);
+        g.gain.exponentialRampToValueAtTime(0.001, bassT + b.beats * BEAT * 0.85);
+        o.start(bassT); o.stop(bassT + b.beats * BEAT);
+        bassT += b.beats * BEAT;
+      });
+
+      for (let i = 0; i < 8; i++) {
+        const noteFreq = melNotes[melStep % melNotes.length];
+        const noteT = startTime + i * BEAT * 0.5;
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.type = 'sine';
+        o.frequency.value = noteFreq;
+        o.detune.value = 8;
+        o.connect(g); g.connect(musicGain);
+        g.gain.setValueAtTime(0.0, noteT);
+        g.gain.linearRampToValueAtTime(0.14 * masterVolume, noteT + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, noteT + BEAT * 0.45);
+        o.start(noteT); o.stop(noteT + BEAT * 0.5);
+        melStep++;
+      }
+
+      const chordNow = chords[bar % chords.length];
+      [BEAT, BEAT * 3].forEach(offset => {
+        const stabT = startTime + offset;
+        chordNow.forEach(freq => {
+          const o = ac.createOscillator();
+          const g = ac.createGain();
+          o.type = 'triangle';
+          o.frequency.value = freq;
+          o.connect(g); g.connect(musicGain);
+          g.gain.setValueAtTime(0.09 * masterVolume, stabT);
+          g.gain.exponentialRampToValueAtTime(0.001, stabT + BEAT * 0.6);
+          o.start(stabT); o.stop(stabT + BEAT * 0.65);
+        });
+      });
+
+      for (let h = 0; h < 8; h++) {
+        const hT = startTime + h * BEAT * 0.5;
+        const buf = ac.createBuffer(1, ac.sampleRate * 0.04, ac.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let s = 0; s < data.length; s++) data[s] = (Math.random() * 2 - 1) * (1 - s / data.length);
+        const src = ac.createBufferSource();
+        const g = ac.createGain();
+        const filt = ac.createBiquadFilter();
+        filt.type = 'highpass'; filt.frequency.value = 8000;
+        src.buffer = buf;
+        src.connect(filt); filt.connect(g); g.connect(musicGain);
+        g.gain.value = (h % 2 === 0 ? 0.18 : 0.09) * masterVolume;
+        src.start(hT);
+      }
+
+      [0, BEAT * 2].forEach(offset => {
+        const kT = startTime + offset;
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(150, kT);
+        o.frequency.exponentialRampToValueAtTime(40, kT + 0.12);
+        o.connect(g); g.connect(musicGain);
+        g.gain.setValueAtTime(0.45 * masterVolume, kT);
+        g.gain.exponentialRampToValueAtTime(0.001, kT + 0.25);
+        o.start(kT); o.stop(kT + 0.28);
+      });
+
+      bar++;
+      musicNode = setTimeout(() => scheduleBar(ac.currentTime + 0.05), BAR * 1000 - 60);
+    }
+
+    scheduleBar(ac.currentTime + 0.05);
+  } catch(e){}
+}
+function stopBgMusic() {
+  if (musicNode) { clearTimeout(musicNode); musicNode = null; }
+  if (musicGain) { try { musicGain.disconnect(); } catch(e){} musicGain = null; }
+}
+
+function toggleSFX(val) { soundEnabled = val; SFX.click(); }
+function toggleMusic(val) { musicEnabled = val; val ? startBgMusic() : stopBgMusic(); }
+function setVolume(val) { masterVolume = val / 100; }
+function openSettings() { SFX.click(); document.getElementById('settingsOverlay').classList.add('active'); }
+function closeSettings() { SFX.click(); document.getElementById('settingsOverlay').classList.remove('active'); }
+
+// ===== SCREEN NAVIGATION =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const notMenu = id !== 'menu';
+  document.getElementById('btnBackTop').style.display = notMenu ? '' : 'none';
+  document.getElementById('btnExitTop').style.display = notMenu ? '' : 'none';
+  if (id === 'game') {
+    setTimeout(() => { initCanvas(); drawTug(); }, 50);
+    if (musicEnabled) startBgMusic();
+  } else {
+    stopBgMusic();
+  }
+}
+
+function goBack() {
+  SFX.click();
+  clearInterval(timer);
+  showScreen('menu');
+}
+
+function exitGame() {
+  if (confirm('Are you sure you want to exit?')) {
+    clearInterval(timer); stopBgMusic();
+    window.location.href = 'mission17.html';
+  }
+}
+function startMode(mode) {
+  SFX.select();
+  gameMode = mode;
+  if (mode === 'single') {
+    document.getElementById('howSP').classList.add('active');
+  } else {
+    document.getElementById('howTP').classList.add('active');
+  }
+}
+
+function closeHow(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+function startTwoGame() {
+  playerNames.red = document.getElementById('nameRed').value.trim() || 'Red';
+  playerNames.blue = document.getElementById('nameBlue').value.trim() || 'Blue';
+  document.getElementById('tpNameRed').textContent = playerNames.red;
+  document.getElementById('tpNameBlue').textContent = playerNames.blue;
+  initGame();
+}
+
+function shuffleQuestions() {
+  for (let i = SDG_QUESTIONS.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [SDG_QUESTIONS[i], SDG_QUESTIONS[j]] = [SDG_QUESTIONS[j], SDG_QUESTIONS[i]];
+  }
+}
+
+function initGame() {
+  currentQ = 0;
+  ropePos = 0;
+  incorrectCount = 0;
+  scores = { sp: 0, red: 0, blue: 0 };
+  SDG_QUESTIONS = pickRandomQuestions();
+  showScreen('game');
+
+  const isSP = gameMode === 'single';
+  document.getElementById('sp-score-box').style.display = isSP ? '' : 'none';
+  document.getElementById('tp-scores').style.display = isSP ? 'none' : 'flex';
+  document.getElementById('buzzerBar').style.display = isSP ? 'none' : 'flex';
+  document.getElementById('buzzerHint').style.display = isSP ? 'none' : 'block';
+
+  setTimeout(() => {
+    initCanvas();
+    drawTug();
+    loadQuestion();
+  }, 80);
+}
+
+function startSingleGame() {
+  gameMode = 'single';
+  initGame();
+}
+
+function loadQuestion() {
+  if (currentQ >= SDG_QUESTIONS.length) {
+    endGame(); return;
+  }
+  const q = SDG_QUESTIONS[currentQ];
+  answered = false;
+  buzzedPlayer = null;
+  chancePassed = false;
+  firstBuzzer = null;
+  activeAnswerer = null;
+  buzzingEnabled = gameMode === 'two';
+  timeLeft = 30;
+
+  document.getElementById('sdgBadge').textContent = `${q.emoji} SDG #${q.sdg}`;
+  document.getElementById('qSDGLabel').textContent = `SDG ${q.sdg} · ${q.name}`;
+  document.getElementById('questionText').textContent = q.question;
+  document.getElementById('lockedMsg').textContent = '';
+
+  document.getElementById('qNumBadge').textContent = `Q ${currentQ + 1} / 17`;
+
+  const incBadge = document.getElementById('qIncorrectBadge');
+  if (gameMode === 'single') {
+    incBadge.style.display = 'block';
+    incBadge.textContent = `❌ ${incorrectCount} incorrect`;
+  } else {
+    incBadge.style.display = 'none';
+  }
+
+  updateScoreDisplay();
+  buildGrid(q);
+
+  if (gameMode === 'two') {
+    document.getElementById('buzzerRed').disabled = false;
+    document.getElementById('buzzerBlue').disabled = false;
+    document.getElementById('tpTurnRed').textContent = '· buzz in! ·';
+    document.getElementById('tpTurnRed').className = 'tp-turn-indicator';
+    document.getElementById('tpTurnBlue').textContent = '· buzz in! ·';
+    document.getElementById('tpTurnBlue').className = 'tp-turn-indicator';
+    disableGrid(true);
+  }
+
+  startTimer(q);
+}
+
+function buildGrid(q) {
+  const grid = document.getElementById('answersGrid');
+  grid.innerHTML = '';
+  const indexed = q.answers.map((ans, i) => ({ text: ans.text, symbol: ans.symbol, isCorrect: i === q.correct }));
+  for (let i = indexed.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
+  }
+  indexed.forEach((item, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'ans-btn';
+    btn.innerHTML = `<span class="ans-symbol">${item.symbol}</span><span class="ans-text">${item.text}</span>`;
+    btn.onclick = () => selectAnswerByCorrect(item.isCorrect, btn, i, indexed);
+    grid.appendChild(btn);
+  });
+}
+
+function selectAnswerByCorrect(isCorrect, btn, idx, indexed) {
+  if (answered) return;
+  if (gameMode === 'two' && !activeAnswerer) return;
+  const correctIdx = indexed.findIndex(item => item.isCorrect);
+  selectAnswer(idx, correctIdx, btn);
+}
+
+function disableGrid(val) {
+  document.querySelectorAll('.ans-btn').forEach(b => b.disabled = val);
+}
+
+function startTimer(q) {
+  clearInterval(timer);
+  const circle = document.getElementById('timerCircle');
+  const numEl = document.getElementById('timerNum');
+  const totalDash = 94;
+  const maxTime = timeLeft;
+
+  timer = setInterval(() => {
+    timeLeft--;
+    numEl.textContent = timeLeft;
+    const pct = timeLeft / maxTime;
+    circle.style.strokeDashoffset = totalDash * (1 - pct);
+    circle.style.stroke = timeLeft > 15 ? '#00C853' : timeLeft > 8 ? '#FFD600' : '#FF3B3B';
+
+    if (timeLeft <= 5 && timeLeft > 0) SFX.timerTick();
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      if (!answered) {
+        onTimeout(q);
+      }
+    }
+  }, 1000);
+}
+
+function onTimeout(q) {
+  if (gameMode === 'single') {
+    handleBothFail(q);
+    return;
+  }
+  if (!firstBuzzer) {
+    handleBothFail(q);
+  } else if (firstBuzzer && !chancePassed) {
+    const other = firstBuzzer === 'red' ? 'blue' : 'red';
+    passChanceTo(other, q, 20);
+  } else {
+    handleBothFail(q);
+  }
+}
+
+function passChanceTo(other, q, addTime) {
+  chancePassed = true;
+  activeAnswerer = other;
+  buzzingEnabled = false;
+  const otherName = playerNames[other];
+
+  timeLeft = timeLeft + addTime;
+  document.getElementById('lockedMsg').textContent = `🔔 ${otherName.toUpperCase()} gets the chance! (+${addTime}s added)`;
+
+  document.getElementById('buzzerRed').disabled = true;
+  document.getElementById('buzzerBlue').disabled = true;
+  disableGrid(false);
+
+  document.getElementById('tpTurnRed').textContent = other === 'red' ? '▶ YOUR TURN' : '· waiting ·';
+  document.getElementById('tpTurnRed').className = 'tp-turn-indicator' + (other === 'red' ? ' active-turn' : '');
+  document.getElementById('tpTurnBlue').textContent = other === 'blue' ? '▶ YOUR TURN' : '· waiting ·';
+  document.getElementById('tpTurnBlue').className = 'tp-turn-indicator' + (other === 'blue' ? ' active-turn' : '');
+
+  startTimer(q);
+}
+
+function handleBothFail(q) {
+  answered = true;
+  buzzingEnabled = false;
+  disableGrid(true);
+  clearInterval(timer);
+
+  const allBtns = document.querySelectorAll('.ans-btn');
+  if (allBtns[q.correct]) allBtns[q.correct].classList.add('correct');
+
+  showToast(gameMode === 'single' ? "⏰ Time's up! See the answer below." : "⏰ No one answered! See the answer below.", 'wrong');
+  SFX.timeout();
+  if (gameMode === 'single') {
+    incorrectCount++;
+    document.getElementById('qIncorrectBadge').textContent = `❌ ${incorrectCount} incorrect`;
+  }
+  drawTug();
+  updateScoreDisplay();
+
+  showExplanation(q.explanation, () => {
+    currentQ++;
+    loadQuestion();
+  });
+}
+
+function showExplanation(text, onNext) {
+  let box = document.getElementById('explanationBox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'explanationBox';
+    box.style.cssText = `
+      position:fixed;bottom:0;left:0;width:100%;z-index:250;
+      background:linear-gradient(135deg,#0d2a0d,#1a1a5e);
+      border-top:2px solid #FFD600;
+      padding:10px 14px;
+      animation:slide-up 0.4s cubic-bezier(0.34,1.56,0.64,1);
+      max-height:28vh; overflow-y:auto;
+    `;
+    const style = document.createElement('style');
+    style.textContent = `@keyframes slide-up{0%{transform:translateY(100%)}100%{transform:translateY(0)}}`;
+    document.head.appendChild(style);
+    document.body.appendChild(box);
+  }
+  box.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:8px;max-width:700px;margin:0 auto;">
+      <div style="font-size:1.2rem;flex-shrink:0">💡</div>
+      <div style="flex:1">
+        <div style="font-family:'Fredoka One',cursive;font-size:0.82rem;color:#FFD600;margin-bottom:2px;">Did You Know?</div>
+        <div style="font-size:0.72rem;line-height:1.4;color:rgba(255,255,255,0.9);">${text}</div>
+      </div>
+      <button onclick="this.closest('#explanationBox').remove();(window._expNext&&window._expNext())" style="
+        flex-shrink:0;padding:6px 14px;background:linear-gradient(135deg,#FFD600,#FF6D00);
+        border:none;border-radius:20px;font-family:'Fredoka One',cursive;font-size:0.8rem;
+        color:#0a0a2e;cursor:pointer;white-space:nowrap;align-self:center;
+      ">Next ➜</button>
+    </div>`;
+  window._expNext = onNext;
+  box.style.display = 'block';
+}
+
+function buzz(player) {
+  if (!buzzingEnabled || firstBuzzer) return;
+  SFX.buzz();
+  firstBuzzer = player;
+  activeAnswerer = player;
+  buzzedPlayer = player;
+  buzzingEnabled = false;
+
+  document.getElementById('buzzerRed').disabled = true;
+  document.getElementById('buzzerBlue').disabled = true;
+
+  const name = playerNames[player];
+  document.getElementById('lockedMsg').textContent = `🔔 ${name.toUpperCase()} buzzed in!`;
+  document.getElementById('tpTurnRed').textContent = player === 'red' ? '▶ ANSWERING' : '· watching ·';
+  document.getElementById('tpTurnRed').className = 'tp-turn-indicator' + (player === 'red' ? ' active-turn' : '');
+  document.getElementById('tpTurnBlue').textContent = player === 'blue' ? '▶ ANSWERING' : '· watching ·';
+  document.getElementById('tpTurnBlue').className = 'tp-turn-indicator' + (player === 'blue' ? ' active-turn' : '');
+  disableGrid(false);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (gameMode !== 'two') return;
+  if (e.key.toLowerCase() === 'r') buzz('red');
+  if (e.key.toLowerCase() === 'b') buzz('blue');
+});
+
+function selectAnswer(idx, correct, btn) {
+  if (answered) return;
+  if (gameMode === 'two' && !activeAnswerer) return;
+
+  const isCorrect = idx === correct;
+
+  if (isCorrect) {
+    answered = true;
+    clearInterval(timer);
+    disableGrid(true);
+    buzzingEnabled = false;
+    btn.classList.add('correct');
+    const allBtns = document.querySelectorAll('.ans-btn');
+    allBtns[correct].classList.add('correct');
+    SFX.correct();
+    showToast('✅ Correct! +1 Point', 'correct');
+
+    if (gameMode === 'single') {
+      scores.sp++;
+      ropePos = Math.min(17, ropePos + 1);
+    } else {
+      scores[activeAnswerer]++;
+      if (activeAnswerer === 'red') {
+        ropePos = Math.max(-17, ropePos - 1);
+      } else {
+        ropePos = Math.min(17, ropePos + 1);
+      }
+    }
+
+    spawnConfetti(5);
+    updateScoreDisplay();
+    drawTug();
+    document.getElementById('lockedMsg').textContent = '';
+    const eb = document.getElementById('explanationBox');
+    if (eb) eb.remove();
+    setTimeout(() => { currentQ++; loadQuestion(); }, 1800);
+
+  } else {
+    btn.classList.add('wrong');
+    disableGrid(true);
+
+    if (gameMode === 'single') {
+      answered = true;
+      clearInterval(timer);
+      const allBtns = document.querySelectorAll('.ans-btn');
+      allBtns[correct].classList.add('correct');
+      SFX.wrong();
+      showToast('❌ Wrong Answer!', 'wrong');
+      incorrectCount++;
+      document.getElementById('qIncorrectBadge').textContent = `❌ ${incorrectCount} incorrect`;
+      ropePos = Math.max(-17, ropePos - 1);
+      updateScoreDisplay();
+      drawTug();
+      showExplanation(SDG_QUESTIONS[currentQ].explanation, () => { currentQ++; loadQuestion(); });
+
+    } else {
+      if (!chancePassed) {
+        showToast(`❌ Wrong! Chance passes to ${playerNames[activeAnswerer === 'red' ? 'blue' : 'red']}!`, 'wrong');
+        const other = activeAnswerer === 'red' ? 'blue' : 'red';
+        const addTime = timeLeft < 15 ? 20 : 10;
+        activeAnswerer = null;
+        buzzedPlayer = null;
+        setTimeout(() => passChanceTo(other, SDG_QUESTIONS[currentQ], addTime), 900);
+      } else {
+        answered = true;
+        clearInterval(timer);
+        const allBtns = document.querySelectorAll('.ans-btn');
+        allBtns[correct].classList.add('correct');
+        showToast('❌ Both players wrong!', 'wrong');
+        updateScoreDisplay();
+        drawTug();
+        showExplanation(SDG_QUESTIONS[currentQ].explanation, () => { currentQ++; loadQuestion(); });
+      }
+    }
+  }
+}
+
+function updateScoreDisplay() {
+  document.getElementById('spScore').textContent = scores.sp;
+  document.getElementById('tpScoreRed').textContent = scores.red;
+  document.getElementById('tpScoreBlue').textContent = scores.blue;
+}
+
+function endGame() {
+  clearInterval(timer);
+  stopBgMusic();
+  showScreen('endscreen');
+  spawnConfetti(40);
+  SFX.gameWin();
+  saveToLeaderboard();
+
+  if (gameMode === 'single') {
+    const pct = (scores.sp / 17) * 100;
+    let compliment = pct >= 80 ? "🌟 Outstanding! You're a true SDG Champion — the world needs more like you!" :
+                     pct >= 60 ? "🎉 Great knowledge! Every round you learn more about our planet's goals!" :
+                     pct >= 40 ? "👍 Good effort! Each question teaches you something new — keep exploring!" :
+                                 "📚 Every round is a chance to learn more. The SDGs need curious minds like yours!";
+    let endTitleText = pct >= 80 ? "🌍 SDG Champion!" :
+                       pct >= 60 ? "🎓 Great Learning!" :
+                       pct >= 40 ? "📖 Keep Exploring!" :
+                                   "🌱 Every Round Counts!";
+    document.getElementById('endTrophy').textContent = pct >= 60 ? '🌍' : '📚';
+    document.getElementById('endTitle').textContent = endTitleText;
+    document.getElementById('endCompliment').textContent = compliment;
+    document.getElementById('endScores').innerHTML = `
+      <div class="end-score-card single-card">
+        <div class="end-score-name">✅ Correct</div>
+        <div class="end-score-pts">${scores.sp} / 17</div>
+      </div>
+      <div class="end-score-card red-card">
+        <div class="end-score-name">❌ Incorrect</div>
+        <div class="end-score-pts">${incorrectCount}</div>
+      </div>`;
+  } else {
+    const winner = scores.red > scores.blue ? playerNames.red :
+                   scores.blue > scores.red ? playerNames.blue : null;
+    const winByRope = ropePos <= -17 ? playerNames.red : ropePos >= 17 ? playerNames.blue : null;
+    const finalWinner = winByRope || winner;
+    document.getElementById('endTrophy').textContent = '🏆';
+    document.getElementById('endTitle').textContent = finalWinner ? `${finalWinner} Wins!` : "It's a Draw!";
+    document.getElementById('endCompliment').textContent = finalWinner ? `Amazing performance in the SDG challenge!` : `Both players are SDG champions! 🤝`;
+    document.getElementById('endScores').innerHTML = `
+      <div class="end-score-card red-card">
+        <div class="end-score-name">🔴 ${playerNames.red}</div>
+        <div class="end-score-pts">${scores.red}</div>
+      </div>
+      <div class="end-score-card blue-card">
+        <div class="end-score-name">🔵 ${playerNames.blue}</div>
+        <div class="end-score-pts">${scores.blue}</div>
+      </div>`;
+  }
+}
+
+function playAgain() {
+  if (gameMode === 'single') { startSingleGame(); }
+  else { showScreen('namepicker'); }
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type}-toast show`;
+  setTimeout(() => { t.className = 'toast'; }, 2000);
+}
+
+function spawnConfetti(count) {
+  const colors = ['#FF3B3B','#1E90FF','#FFD600','#00C853','#AA00FF','#FF6D00'];
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    c.style.cssText = `left:${Math.random()*100}%;top:-10px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-delay:${Math.random()*1}s;transform:rotate(${Math.random()*360}deg);width:${6+Math.random()*10}px;height:${6+Math.random()*10}px;border-radius:${Math.random()>0.5?'50%':'2px'}`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 3500);
+  }
+}
+
+// ── SDG LEARN POPUP ──
+const LEARN_SDGS=[
+  {id:1,name:"No Poverty",color:"#E5243B",emoji:"🏠",fact:"Over 700 million people live on less than $2.15/day. Extreme poverty was cut in half between 2000–2015, but COVID-19 pushed millions back."},
+  {id:2,name:"Zero Hunger",color:"#DDA63A",emoji:"🌾",fact:"828 million go hungry daily. Yet we produce enough food to feed 10 billion. The challenge is access, waste, and sustainable farming."},
+  {id:3,name:"Good Health",color:"#4C9F38",emoji:"💊",fact:"Universal healthcare could save 8 million lives per year. Clean air, safe water and vaccines are the world's most powerful medicines."},
+  {id:4,name:"Quality Education",color:"#C5192D",emoji:"📚",fact:"300 million children cannot read or write. Education is the single greatest equaliser — it transforms lives across generations."},
+  {id:5,name:"Gender Equality",color:"#FF3A21",emoji:"♀️",fact:"Globally, women earn 20% less than men for equal work. Gender equality adds $28 trillion to the global economy."},
+  {id:6,name:"Clean Water",color:"#26BDE2",emoji:"💧",fact:"2.2 billion people lack safe drinking water. By 2050, up to 5.7 billion could face water scarcity for at least one month per year."},
+  {id:7,name:"Clean Energy",color:"#FCC30B",emoji:"⚡",fact:"Solar and wind are now the cheapest electricity sources in history. 759 million people still lack access to electricity."},
+  {id:8,name:"Decent Work",color:"#A21942",emoji:"💼",fact:"1.6 billion workers were impacted by the COVID-19 crisis. Decent work means fair pay, safe conditions and equal opportunities for all."},
+  {id:9,name:"Innovation",color:"#FD6925",emoji:"🏗️",fact:"In least developed countries, only 30% of people have internet access. Infrastructure and innovation are the engine of economic growth."},
+  {id:10,name:"Reduced Inequality",color:"#DD1367",emoji:"📊",fact:"The richest 1% own more than double the wealth of 6.9 billion people. Closing the gap makes every society healthier and more stable."},
+  {id:11,name:"Sustainable Cities",color:"#FD9D24",emoji:"🏙️",fact:"By 2050, 70% of the world will live in cities. Making cities green, safe and inclusive is one of the greatest challenges of our time."},
+  {id:12,name:"Responsible Use",color:"#BF8B2E",emoji:"♻️",fact:"We'd need 3 Earths if everyone consumed like wealthy nations. Food waste alone produces 8-10% of global greenhouse gas emissions."},
+  {id:13,name:"Climate Action",color:"#3F7E44",emoji:"🌡️",fact:"The planet has warmed 1.1°C since pre-industrial times. We have until 2030 to cut emissions by 45% to limit warming to 1.5°C."},
+  {id:14,name:"Life Below Water",color:"#0A97D9",emoji:"🐟",fact:"Oceans produce 50% of Earth's oxygen and absorb 25% of CO₂. 8 million tonnes of plastic enter our oceans every single year."},
+  {id:15,name:"Life on Land",color:"#56C02B",emoji:"🌳",fact:"1 million plant and animal species face extinction. Forests are home to 80% of all land species."},
+  {id:16,name:"Peace & Justice",color:"#00689D",emoji:"🕊️",fact:"Over 100 million people are forcibly displaced. Peace, strong institutions and access to justice are the bedrock of all other SDGs."},
+  {id:17,name:"Partnerships",color:"#19486A",emoji:"🤝",fact:"No country can achieve the SDGs alone. Official development aid reached $185 billion in 2021 — but the annual gap is still $4.2 trillion."},
+];
+
+function buildLearnPopup(){
+  const existing=document.getElementById('learnPopup');if(existing)return;
+  const overlay=document.createElement('div');overlay.id='learnPopup';
+  overlay.innerHTML=`
+    <div class="lp-card">
+      <div class="lp-header">
+        <div class="lp-title">🌍 The 17 SDGs</div>
+        <button class="lp-close" onclick="closeLearn()">✕ Close</button>
+      </div>
+      <div class="lp-body">
+        ${LEARN_SDGS.map(s=>`
+          <div class="lp-sdg">
+            <div class="lp-bar" style="background:${s.color}"></div>
+            <div class="lp-sdg-top">
+              <div class="lp-num" style="background:${s.color}">${s.id}</div>
+              <div class="lp-name">${s.emoji} ${s.name}</div>
+            </div>
+            <div class="lp-sdg-body">${s.fact}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+function openLearn(){buildLearnPopup();document.getElementById('learnPopup').classList.add('show');}
+function closeLearn(){document.getElementById('learnPopup').classList.remove('show');}
+
+// ===== LEADERBOARD =====
+const LB_KEY_SP = 'tugofwar_lb_solo';
+const LB_KEY_TP = 'tugofwar_lb_two';
+let lbCurrentTab = 'sp';
+
+function getLBData(key) {
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+}
+function saveLBData(key, data) {
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
+}
+
+function saveToLeaderboard() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  if (gameMode === 'single') {
+    const entries = getLBData(LB_KEY_SP);
+    entries.push({ name: 'You', score: scores.sp, outOf: 17, incorrect: incorrectCount, date: dateStr });
+    entries.sort((a,b) => b.score - a.score || a.incorrect - b.incorrect);
+    saveLBData(LB_KEY_SP, entries.slice(0, 20));
+  } else {
+    const winner = scores.red > scores.blue ? playerNames.red :
+                   scores.blue > scores.red ? playerNames.blue : 'Draw';
+    const winByRope = ropePos <= -17 ? playerNames.red : ropePos >= 17 ? playerNames.blue : null;
+    const finalWinner = winByRope || winner;
+    const entries = getLBData(LB_KEY_TP);
+    entries.push({
+      winner: finalWinner,
+      redName: playerNames.red, redScore: scores.red,
+      blueName: playerNames.blue, blueScore: scores.blue,
+      date: dateStr
+    });
+    saveLBData(LB_KEY_TP, entries.slice(0, 20));
+  }
+}
+
+function openLeaderboard() {
+  buildLeaderboardPopup();
+  document.getElementById('leaderboardPopup').classList.add('show');
+  renderLBTab(lbCurrentTab);
+}
+function closeLeaderboard() {
+  document.getElementById('leaderboardPopup').classList.remove('show');
+}
+function switchLBTab(tab) {
+  lbCurrentTab = tab;
+  document.getElementById('lbTabSP').classList.toggle('active', tab === 'sp');
+  document.getElementById('lbTabTP').classList.toggle('active', tab === 'tp');
+  renderLBTab(tab);
+}
+function buildLeaderboardPopup() {}
+
+function renderLBTab(tab) {
+  const body = document.getElementById('lbBody');
+  if (!body) return;
+  const rankIcons = ['🥇','🥈','🥉'];
+  if (tab === 'sp') {
+    const entries = getLBData(LB_KEY_SP);
+    if (entries.length === 0) {
+      body.innerHTML = `<div class="lb-empty">No solo games yet!<br>Play and set a record 🌍</div>`;
+      return;
+    }
+    body.innerHTML = entries.map((e, i) => `
+      <div class="lb-entry ${i===0?'top-1':i===1?'top-2':i===2?'top-3':''}">
+        <div class="lb-rank">${i < 3 ? rankIcons[i] : '#' + (i+1)}</div>
+        <div class="lb-info">
+          <div class="lb-name">🧠 ${e.name || 'You'}</div>
+          <div class="lb-sub">❌ ${e.incorrect} incorrect · ${e.date}</div>
+        </div>
+        <div class="lb-score">${e.score}/${e.outOf}</div>
+      </div>`).join('') +
+      `<button class="lb-clr-btn" onclick="clearLB('sp')">🗑️ Clear Solo Records</button>`;
+  } else {
+    const entries = getLBData(LB_KEY_TP);
+    if (entries.length === 0) {
+      body.innerHTML = `<div class="lb-empty">No 2-player games yet!<br>Challenge a friend ⚔️</div>`;
+      return;
+    }
+    body.innerHTML = entries.map((e, i) => `
+      <div class="lb-entry ${i===0?'top-1':i===1?'top-2':i===2?'top-3':''}">
+        <div class="lb-rank">${i < 3 ? rankIcons[i] : '#' + (i+1)}</div>
+        <div class="lb-info">
+          <div class="lb-name">🏆 ${e.winner === 'Draw' ? "🤝 Draw" : e.winner + ' Wins!'}</div>
+          <div class="lb-sub">🔴 ${e.redName} ${e.redScore} — 🔵 ${e.blueName} ${e.blueScore} · ${e.date}</div>
+        </div>
+        <div class="lb-score" style="font-size:0.7rem;color:rgba(255,255,255,0.5);">${e.date}</div>
+      </div>`).join('') +
+      `<button class="lb-clr-btn" onclick="clearLB('tp')">🗑️ Clear 2P Records</button>`;
+  }
+}
+
+function clearLB(tab) {
+  if (!confirm('Clear all ' + (tab==='sp'?'solo':'two-player') + ' records?')) return;
+  saveLBData(tab === 'sp' ? LB_KEY_SP : LB_KEY_TP, []);
+  renderLBTab(tab);
+}</script>
+</body>
+</html>

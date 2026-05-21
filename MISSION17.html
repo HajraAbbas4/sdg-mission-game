@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mission 17 🌍</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0d1b2a;
+  --bg2:#0a1628;
+  --green:#00e676;
+  --yellow:#ffd700;
+  --orange:#FF6B35;
+  --blue:#29b6f6;
+  --purple:#7b2fbe;
+  --pink:#ff3d9a;
+  --white:#ffffff;
+}
+html,body{width:100%;height:100%;background:var(--bg);font-family:'Nunito',sans-serif;color:var(--white);overflow:hidden;}
+
+/* ── STARS ── */
+#starfield{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.star{position:absolute;border-radius:50%;background:white;animation:twinkle linear infinite;}
+@keyframes twinkle{0%,100%{opacity:0.15;transform:scale(1);}50%{opacity:1;transform:scale(1.5);}}
+.shooting{position:absolute;width:120px;height:2px;border-radius:2px;background:linear-gradient(90deg,white,transparent);animation:shoot linear infinite;opacity:0;}
+@keyframes shoot{0%{opacity:0;transform:translateX(0) translateY(0) rotate(-30deg);}10%{opacity:1;}100%{opacity:0;transform:translateX(600px) translateY(300px) rotate(-30deg);}}
+
+/* ══════════════════════════════
+   INTRO ANIMATION
+══════════════════════════════ */
+#introScreen{
+  position:fixed;inset:0;z-index:999;
+  background:radial-gradient(ellipse at center, #0a1f3d 0%, #050d1a 60%, #000 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+#introScreen.hide{
+  animation:introFadeOut 0.9s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+}
+@keyframes introFadeOut{
+  0%{opacity:1;transform:scale(1);}
+  100%{opacity:0;transform:scale(1.05);}
+}
+
+/* deep space nebula glow */
+.intro-nebula{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 30% 60%, rgba(0,100,255,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 35% at 70% 40%, rgba(120,0,255,0.1) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0,200,100,0.07) 0%, transparent 70%);
+}
+
+/* planet that flies in from far away */
+.intro-planet{
+  font-size:clamp(80px,18vw,140px);
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -75%);
+  animation:planetFlyIn 2.6s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both;
+  filter:drop-shadow(0 0 40px rgba(0,200,120,0.6)) drop-shadow(0 0 80px rgba(0,100,255,0.4));
+  z-index:2;
+}
+@keyframes planetFlyIn{
+  0%{
+    transform:translate(calc(-50% - 110vw), calc(-75% + 75vh)) scale(0.05) rotate(-40deg);
+    opacity:0;
+  }
+  20%{opacity:1;}
+  100%{
+    transform:translate(-50%, -75%) scale(1) rotate(0deg);
+    opacity:1;
+  }
+}
+
+/* rocket that zooms past */
+.intro-rocket{
+  font-size:clamp(36px,8vw,58px);
+  position:absolute;
+  animation:rocketZoom 1.8s cubic-bezier(0.25,0.46,0.45,0.94) 0.5s both;
+  z-index:3;
+  filter:drop-shadow(0 0 18px rgba(255,180,50,0.9));
+}
+@keyframes rocketZoom{
+  0%{transform:translate(-65vw, 42vh) rotate(-35deg) scale(0.2);opacity:0;}
+  12%{opacity:1;}
+  100%{transform:translate(75vw, -65vh) rotate(-35deg) scale(0.15);opacity:0;}
+}
+
+/* rocket trail */
+.intro-trail{
+  position:absolute;
+  width:200px;height:3px;
+  background:linear-gradient(90deg, transparent, rgba(255,160,40,0.8), transparent);
+  border-radius:2px;
+  animation:trailZoom 1.8s cubic-bezier(0.25,0.46,0.45,0.94) 0.5s both;
+  z-index:3;
+  filter:blur(2px);
+}
+@keyframes trailZoom{
+  0%{transform:translate(-70vw, 43vh) rotate(-35deg) scaleX(0.2);opacity:0;}
+  12%{opacity:0.7;}
+  100%{transform:translate(65vw, -64vh) rotate(-35deg) scaleX(0.05);opacity:0;}
+}
+
+/* second smaller rocket */
+.intro-rocket2{
+  font-size:clamp(22px,5vw,36px);
+  position:absolute;
+  animation:rocketZoom2 1.6s cubic-bezier(0.25,0.46,0.45,0.94) 1.0s both;
+  z-index:3;
+  filter:drop-shadow(0 0 12px rgba(100,200,255,0.9));
+}
+@keyframes rocketZoom2{
+  0%{transform:translate(65vw, 52vh) rotate(40deg) scale(0.15);opacity:0;}
+  12%{opacity:1;}
+  100%{transform:translate(-75vw, -55vh) rotate(40deg) scale(0.08);opacity:0;}
+}
+
+/* title reveal */
+.intro-title{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(3rem,12vw,7rem);
+  background:linear-gradient(90deg,#00ff88,#ffd700,#ff6b35,#ff3d9a,#00d4ff,#00ff88);
+  background-size:300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 3s linear infinite, titleReveal 1s cubic-bezier(0.25,0.46,0.45,0.94) 2.3s both;
+  letter-spacing:4px;
+  position:relative;z-index:2;
+  margin-top:clamp(130px, 24vw, 200px);
+  text-align:center;
+}
+@keyframes titleReveal{
+  0%{opacity:0;transform:translateY(40px) scale(0.85);}
+  100%{opacity:1;transform:translateY(0) scale(1);}
+}
+
+.intro-sub{
+  font-family:'Nunito',sans-serif;
+  font-size:clamp(0.8rem,2.5vw,1.1rem);
+  color:rgba(255,255,255,0.6);
+  font-weight:800;letter-spacing:4px;text-transform:uppercase;
+  animation:titleReveal 0.8s cubic-bezier(0.25,0.46,0.45,0.94) 2.9s both;
+  position:relative;z-index:2;
+  margin-top:10px;
+}
+
+/* skip button */
+.intro-skip{
+  position:absolute;bottom:24px;right:20px;
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);
+  border-radius:12px;padding:7px 16px;color:rgba(255,255,255,0.45);
+  font-family:'Fredoka One',cursive;font-size:0.8rem;cursor:pointer;
+  animation:fadeIn 0.5s ease 1s both;
+  transition:all 0.2s;z-index:4;
+}
+.intro-skip:hover{background:rgba(255,255,255,0.15);color:white;}
+
+/* loading dots */
+.intro-dots{
+  display:flex;gap:8px;margin-top:20px;
+  animation:titleReveal 0.8s cubic-bezier(0.25,0.46,0.45,0.94) 3.2s both;
+  position:relative;z-index:2;
+}
+.intro-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(255,255,255,0.3);
+  animation:dotPulse 1.2s ease-in-out infinite;
+}
+.intro-dot:nth-child(2){animation-delay:0.2s;}
+.intro-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes dotPulse{
+  0%,100%{transform:scale(1);background:rgba(255,255,255,0.3);}
+  50%{transform:scale(1.4);background:rgba(0,230,118,0.8);}
+}
+
+/* ── MAIN WRAPPER ── */
+.page{position:relative;z-index:1;width:100%;height:100vh;}
+
+/* ══════════════════════════════
+   SCREEN SYSTEM
+══════════════════════════════ */
+.screen{display:none;width:100%;height:100vh;}
+.screen.active{display:flex;}
+
+/* ══════════════════════════════
+   MAIN MENU — full viewport, no scroll
+══════════════════════════════ */
+#menuScreen{
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:12px 16px;
+  gap:10px;
+}
+
+/* planet hero — compact */
+.hero{text-align:center;flex-shrink:0;}
+.planet-wrap{position:relative;display:inline-block;margin-bottom:2px;}
+.planet-big{font-size:clamp(52px,10vw,80px);display:block;animation:planetFloat 3s ease-in-out infinite alternate,planetGlow 4s linear infinite;}
+@keyframes planetFloat{0%{transform:translateY(0) rotate(-3deg);}100%{transform:translateY(-10px) rotate(3deg);}}
+@keyframes planetGlow{0%{filter:drop-shadow(0 0 16px #00ff88) hue-rotate(0deg);}100%{filter:drop-shadow(0 0 28px #00d4ff) hue-rotate(360deg);}}
+.orbit-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(72px,14vw,110px);height:clamp(72px,14vw,110px);border:2px dashed rgba(0,230,118,0.3);border-radius:50%;animation:spin 12s linear infinite;}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+.orbit-dot{position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:var(--yellow);box-shadow:0 0 8px var(--yellow);}
+
+.mission-title{font-family:'Fredoka One',cursive;font-size:clamp(2.2rem,8vw,4.5rem);line-height:1;
+  background:linear-gradient(90deg,#00ff88,#ffd700,#ff6b35,#ff3d9a,#7b2fbe,#00d4ff,#00ff88);
+  background-size:300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 4s linear infinite;letter-spacing:2px;}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:300%}}
+.mission-sub{font-size:clamp(0.72rem,2vw,0.9rem);color:rgba(255,255,255,0.65);font-weight:800;letter-spacing:3px;text-transform:uppercase;margin-top:2px;}
+.mission-tagline{font-size:clamp(0.78rem,1.8vw,0.9rem);color:#7ecfff;font-weight:700;margin-top:4px;max-width:360px;margin-left:auto;margin-right:auto;line-height:1.4;}
+
+/* section label */
+.section-label{font-family:'Fredoka One',cursive;font-size:0.82rem;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.35);text-align:center;flex-shrink:0;}
+
+/* ── GAMES GRID ── */
+.games-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:560px;width:100%;margin:0 auto;flex-shrink:0;}
+
+.game-card{position:relative;border-radius:18px;padding:11px 8px 10px;text-align:center;cursor:pointer;
+  transition:transform 0.18s,box-shadow 0.18s;overflow:hidden;
+  border:2px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);backdrop-filter:blur(8px);}
+.game-card:hover{transform:translateY(-5px) scale(1.03);}
+.game-card:active{transform:translateY(0) scale(0.97);}
+.game-card.locked{cursor:default;opacity:0.55;}
+.game-card.locked:hover{transform:none;}
+
+.game-card::before{content:'';position:absolute;inset:0;border-radius:18px;opacity:0;transition:opacity 0.3s;}
+.game-card:hover::before{opacity:1;}
+.card-tow::before{background:radial-gradient(circle at 50% 0%,rgba(255,107,53,0.18),transparent 70%);}
+.card-run::before{background:radial-gradient(circle at 50% 0%,rgba(0,230,118,0.18),transparent 70%);}
+.card-g3::before{background:radial-gradient(circle at 50% 0%,rgba(41,182,246,0.18),transparent 70%);}
+.card-g4::before{background:radial-gradient(circle at 50% 0%,rgba(123,47,190,0.18),transparent 70%);}
+
+.card-icon{font-size:clamp(26px,5vw,38px);display:block;margin-bottom:3px;line-height:1;}
+.card-num{position:absolute;top:7px;left:9px;font-family:'Fredoka One',cursive;font-size:0.65rem;
+  background:rgba(255,255,255,0.12);border-radius:7px;padding:2px 6px;color:rgba(255,255,255,0.6);}
+.card-title{font-family:'Fredoka One',cursive;font-size:clamp(0.72rem,2vw,0.88rem);color:white;margin-bottom:2px;line-height:1.2;}
+.card-desc{font-size:0.6rem;color:rgba(255,255,255,0.5);font-weight:800;line-height:1.3;}
+.card-badge{position:absolute;top:7px;right:8px;font-size:0.58rem;font-weight:900;padding:2px 6px;border-radius:9px;text-transform:uppercase;letter-spacing:1px;}
+.badge-play{background:rgba(0,230,118,0.25);color:#00e676;border:1px solid rgba(0,230,118,0.4);}
+.badge-soon{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.15);}
+.lock-icon{font-size:1rem;display:block;margin-bottom:2px;}
+
+.card-bar{position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 18px 18px;}
+.card-tow .card-bar{background:linear-gradient(90deg,#FF6B35,#ffd700);}
+.card-run .card-bar{background:linear-gradient(90deg,#00e676,#29b6f6);}
+.card-g3 .card-bar{background:linear-gradient(90deg,#29b6f6,#7b2fbe);}
+.card-g4 .card-bar{background:linear-gradient(90deg,#7b2fbe,#ff3d9a);}
+.card-g5::before{background:radial-gradient(circle at 50% 0%,rgba(255,61,154,0.18),transparent 70%);}
+.card-g6::before{background:radial-gradient(circle at 50% 0%,rgba(255,215,0,0.18),transparent 70%);}
+.card-g5 .card-bar{background:linear-gradient(90deg,#ff3d9a,#ff6b35);}
+.card-g6 .card-bar{background:linear-gradient(90deg,#ffd700,#00e676);}
+
+/* ── LEARN BUTTON ── */
+.learn-btn-wrap{width:100%;max-width:480px;flex-shrink:0;}
+.learn-btn{width:100%;padding:13px 20px;border-radius:20px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,rgba(0,212,255,0.15),rgba(0,230,118,0.1));
+  border:2px solid rgba(0,212,255,0.3);
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  transition:all 0.2s;position:relative;overflow:hidden;}
+.learn-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,212,255,0.08),rgba(0,230,118,0.08));opacity:0;transition:opacity 0.2s;}
+.learn-btn:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,212,255,0.2);border-color:rgba(0,212,255,0.6);}
+.learn-btn:hover::before{opacity:1;}
+.learn-btn:active{transform:translateY(0);}
+.learn-icon{font-size:1.8rem;}
+.learn-text{text-align:left;}
+.learn-title{font-family:'Fredoka One',cursive;font-size:1.05rem;color:#00d4ff;}
+.learn-sub{font-size:0.7rem;color:rgba(255,255,255,0.5);font-weight:800;}
+.learn-arrow{font-size:1.2rem;margin-left:auto;color:rgba(0,212,255,0.6);}
+
+/* ══════════════════════════════
+   LEARN PAGE — separate full page
+══════════════════════════════ */
+#learnScreen{
+  flex-direction:column;
+  background:var(--bg);
+  overflow:hidden;
+}
+
+.learn-header{background:linear-gradient(160deg,#0d1b2a,#0a2240,#0d1b2a);
+  padding:18px 20px 14px;text-align:center;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  position:relative;flex-shrink:0;}
+.learn-header-title{font-family:'Fredoka One',cursive;font-size:clamp(1.5rem,5vw,2.4rem);
+  background:linear-gradient(90deg,#00d4ff,#00e676,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:3px;}
+.learn-header-sub{font-size:0.78rem;color:rgba(255,255,255,0.5);font-weight:800;letter-spacing:2px;text-transform:uppercase;}
+.back-btn{position:absolute;top:50%;left:16px;transform:translateY(-50%);
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+  border-radius:14px;padding:7px 13px;color:white;font-family:'Fredoka One',cursive;font-size:0.85rem;cursor:pointer;
+  transition:all 0.2s;display:flex;align-items:center;gap:5px;}
+.back-btn:hover{background:rgba(255,255,255,0.15);transform:translateY(-50%) translateX(-2px);}
+
+/* learn body — scrollable area */
+.learn-body{flex:1;overflow-y:auto;overflow-x:hidden;}
+
+/* hero banner on learn page */
+.learn-hero{background:linear-gradient(135deg,rgba(0,100,60,0.3),rgba(0,30,80,0.4));
+  margin:14px 14px 0;border-radius:18px;padding:16px;border:1px solid rgba(0,230,118,0.2);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.learn-hero-text h2{font-family:'Fredoka One',cursive;font-size:clamp(1rem,3vw,1.3rem);color:#00e676;margin-bottom:4px;}
+.learn-hero-text p{font-size:0.78rem;color:rgba(255,255,255,0.65);font-weight:700;line-height:1.5;max-width:500px;}
+.learn-hero-emoji{font-size:2.8rem;flex-shrink:0;}
+
+/* stats strip */
+.stats-strip{display:flex;gap:8px;overflow-x:auto;padding:12px 14px;scrollbar-width:none;-ms-overflow-style:none;}
+.stats-strip::-webkit-scrollbar{display:none;}
+.stat-pill{flex-shrink:0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:10px 16px;text-align:center;}
+.stat-val{font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--yellow);}
+.stat-lbl{font-size:0.62rem;color:rgba(255,255,255,0.45);font-weight:800;text-transform:uppercase;letter-spacing:1px;}
+
+/* SDG cards grid */
+.sdg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:0 14px 30px;max-width:1100px;margin:0 auto;}
+
+.sdg-card{border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.04);transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;}
+.sdg-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,0.3);}
+.sdg-card-top{padding:14px 14px 10px;display:flex;align-items:center;gap:12px;}
+.sdg-num-badge{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.2rem;color:white;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,0.3);}
+.sdg-card-info{flex:1;}
+.sdg-card-name{font-family:'Fredoka One',cursive;font-size:0.95rem;color:white;line-height:1.2;}
+.sdg-card-body{padding:0 14px 12px;}
+.sdg-fact{font-size:0.76rem;color:rgba(255,255,255,0.65);font-weight:700;line-height:1.5;margin-bottom:8px;}
+.sdg-stat-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.sdg-stat{background:rgba(255,255,255,0.07);border-radius:7px;padding:4px 8px;font-size:0.68rem;font-weight:800;color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);}
+.sdg-progress-wrap{padding:0 14px 12px;}
+.sdg-progress-label{font-size:0.64rem;color:rgba(255,255,255,0.4);font-weight:800;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px;}
+.sdg-progress-track{height:5px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;}
+.sdg-progress-fill{height:100%;border-radius:3px;transition:width 1s ease;}
+
+/* ── VOLUME CONTROL ── */
+#volBtn{position:fixed;bottom:18px;right:12px;z-index:500;
+  width:40px;height:40px;border-radius:50%;cursor:pointer;
+  background:rgba(0,0,0,0.72);border:2px solid rgba(255,255,255,0.25);
+  font-size:1.1rem;display:flex;align-items:center;justify-content:center;
+  transition:transform 0.15s,box-shadow 0.15s;box-shadow:0 2px 10px rgba(0,0,0,0.4);}
+#volBtn:hover{transform:scale(1.12);box-shadow:0 4px 16px rgba(0,230,118,0.35);}
+#volPanel{position:fixed;bottom:64px;right:10px;z-index:500;
+  background:rgba(10,20,35,0.95);border:2px solid rgba(255,255,255,0.18);
+  border-radius:18px;padding:12px 12px 10px;display:none;flex-direction:column;
+  align-items:center;gap:9px;min-width:50px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);backdrop-filter:blur(12px);
+  animation:vpSlide 0.2s ease;}
+#volPanel.open{display:flex;}
+@keyframes vpSlide{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.vol-label{font-size:0.62rem;font-weight:900;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;}
+#volSlider{-webkit-appearance:none;appearance:none;
+  writing-mode:vertical-lr;direction:rtl;
+  width:6px;height:100px;border-radius:3px;outline:none;cursor:pointer;
+  background:linear-gradient(to top,#00e676 var(--vp,70%),rgba(255,255,255,0.15) var(--vp,70%));border:none;}
+#volSlider::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:white;box-shadow:0 0 8px rgba(0,230,118,0.8);cursor:pointer;border:2px solid #00e676;}
+#volSlider::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:white;box-shadow:0 0 8px rgba(0,230,118,0.8);cursor:pointer;border:2px solid #00e676;}
+.vol-pct{font-family:'Fredoka One',cursive;font-size:0.82rem;color:#00e676;}
+.vol-step-btn{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.08);color:white;font-size:0.95rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all 0.15s;font-weight:900;}
+.vol-step-btn:hover{background:rgba(0,230,118,0.25);border-color:#00e676;}
+
+/* Page transition animation */
+.screen{transition:opacity 0.3s ease;}
+.screen.fade-out{opacity:0;}
+.screen.fade-in{animation:fadeIn 0.3s ease forwards;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+</style>
+</head>
+<body>
+
+<!-- INTRO ANIMATION -->
+<div id="introScreen">
+  <div class="intro-nebula"></div>
+  <span class="intro-planet">🌍</span>
+  <span class="intro-rocket">🚀</span>
+  <div class="intro-trail"></div>
+  <span class="intro-rocket2">🛸</span>
+  <h1 class="intro-title">MISSION 17</h1>
+  <p class="intro-sub">🌟 The SDG Challenge 🌟</p>
+  <div class="intro-dots">
+    <div class="intro-dot"></div>
+    <div class="intro-dot"></div>
+    <div class="intro-dot"></div>
+  </div>
+  <button class="intro-skip" onclick="skipIntro()">Skip ›</button>
+</div>
+
+<!-- STARFIELD -->
+<div id="starfield"></div>
+
+<div class="page">
+
+<!-- ══════════════════════════════════
+     MAIN MENU SCREEN
+══════════════════════════════════ -->
+<div id="menuScreen" class="screen active">
+
+  <div class="hero">
+    <div class="planet-wrap">
+      <div class="orbit-ring"><div class="orbit-dot"></div></div>
+      <span class="planet-big">🌍</span>
+    </div>
+    <h1 class="mission-title">MISSION 17</h1>
+    <p class="mission-sub">🌟 The SDG Challenge 🌟</p>
+    <p class="mission-tagline">Play games, learn facts, and help save our planet — one SDG at a time!</p>
+  </div>
+
+  <p class="section-label">🎮 Choose Your Mission</p>
+
+  <div class="games-grid">
+
+    <!-- Game 1: Tug of War -->
+    <div class="game-card card-tow" onclick="openGame('TUGOWFINAL.html')">
+      <span class="card-num">01</span>
+      <span class="card-badge badge-play">▶ Play</span>
+      <span class="card-icon">🪢</span>
+      <div class="card-title">SDG Tug of War</div>
+      <div class="card-desc">Answer SDG questions & pull your opponent!</div>
+      <div class="card-bar"></div>
+    </div>
+
+    <!-- Game 2: Adventure Run -->
+    <div class="game-card card-run" onclick="openGame('SDGSRUN.html')">
+      <span class="card-num">02</span>
+      <span class="card-badge badge-play">▶ Play</span>
+      <span class="card-icon">🐼</span>
+      <div class="card-title">SDG Adventure Run</div>
+      <div class="card-desc">Run, jump & collect all 17 SDG badges!</div>
+      <div class="card-bar"></div>
+    </div>
+
+    <!-- Game 3: TURN 17 -->
+    <div class="game-card card-run" onclick="openGame('TURN17.html')">
+      <span class="card-num">03</span>
+     <span class="card-badge badge-play">▶ Play</span>
+      <span class="card-icon">🌊</span>
+      <div class="card-title">TURN 17</div>
+      <div class="card-desc">Turn, Explore & Unlock the future</div>
+      <div class="card-bar"></div>
+    </div>
+
+    <!-- Game 4: SDG QUEST-->
+    <div class="game-card card-run" onclick="openGame('SDGQUEST.html')">
+      <span class="card-num">04</span>
+     <span class="card-badge badge-play">▶ Play</span>
+      <span class="card-icon">🫧</span>
+      <div class="card-title">SDG QUEST</div>
+      <div class="card-desc">Pop bubbles & Save the universe</div>
+      <div class="card-bar"></div>
+    </div>
+
+    <!-- Game 5: MAYOR FOR CHANGE -->
+    <div class="game-card card-run" onclick="openGame('TOWN.html')">
+      <span class="card-num">05</span>
+      <span class="card-badge badge-play">▶ Play</span>
+      <span class="card-icon">🏛️</span>
+      <div class="card-title">MAYOR FOR CHANGE </div>
+      <div class="card-desc">Lead your town towards greatness</div>
+      <div class="card-bar"></div>
+    </div>
+
+    <!-- Game 6: Coming Soon -->
+    <div class="game-card card-run" onclick="openGame('CARTOON.html')">
+      <span class="card-num">06</span>
+      <span class="card-badge badge-play">▶ Watch</span>
+      <span class="card-icon">⭐</span>
+      <div class="card-title">HOPE WORLD</div>
+      <div class="card-desc">Learn SDGs with fun charecters</div>
+      <div class="card-bar"></div>
+    </div>
+
+  </div>
+
+  <!-- Learn Button -->
+  <div class="learn-btn-wrap">
+    <button class="learn-btn" onclick="showLearn()">
+      <span class="learn-icon">📚</span>
+      <div class="learn-text">
+        <div class="learn-title">Learn About the SDGs</div>
+        <div class="learn-sub">All 17 Goals • Key Facts • Real Stats</div>
+      </div>
+      <span class="learn-arrow">→</span>
+    </button>
+  </div>
+
+</div><!-- end menuScreen -->
+
+
+<!-- ══════════════════════════════════
+     LEARN SCREEN
+══════════════════════════════════ -->
+<div id="learnScreen" class="screen">
+
+  <div class="learn-header">
+    <button class="back-btn" onclick="showMenu()">← Back</button>
+    <div class="learn-header-title">🌍 The 17 SDGs</div>
+    <div class="learn-header-sub">Sustainable Development Goals</div>
+  </div>
+
+  <!-- Scrollable body -->
+  <div class="learn-body">
+
+    <!-- Hero banner -->
+    <div class="learn-hero">
+      <span class="learn-hero-emoji">🌐</span>
+      <div class="learn-hero-text">
+        <h2>What are the SDGs?</h2>
+        <p>In 2015, all 193 UN member countries adopted the 2030 Agenda — 17 goals to end poverty, protect the planet, and ensure peace and prosperity for all people by 2030. Every goal matters. Every action counts!</p>
+      </div>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="stats-strip">
+      <div class="stat-pill"><div class="stat-val">17</div><div class="stat-lbl">Global Goals</div></div>
+      <div class="stat-pill"><div class="stat-val">169</div><div class="stat-lbl">Targets</div></div>
+      <div class="stat-pill"><div class="stat-val">193</div><div class="stat-lbl">Countries</div></div>
+      <div class="stat-pill"><div class="stat-val">2030</div><div class="stat-lbl">Deadline</div></div>
+      <div class="stat-pill"><div class="stat-val">8B+</div><div class="stat-lbl">People Impacted</div></div>
+    </div>
+
+    <!-- SDG Cards -->
+    <div class="sdg-grid" id="sdgGrid"></div>
+
+  </div><!-- end learn-body -->
+
+</div><!-- end learnScreen -->
+
+</div><!-- end page -->
+
+<!-- VOLUME CONTROL -->
+<button id="volBtn" onclick="toggleVolPanel()">🔊</button>
+<div id="volPanel">
+  <div class="vol-label">Volume</div>
+  <button class="vol-step-btn" onclick="stepVol(10)">＋</button>
+  <input type="range" id="volSlider" min="0" max="100" value="70" orient="vertical" oninput="setVol(this.value)">
+  <button class="vol-step-btn" onclick="stepVol(-10)">－</button>
+  <div class="vol-pct" id="volPct">70%</div>
+  <button class="vol-step-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// INTRO ANIMATION
+// ════════════════════════════════════════
+function skipIntro(){
+  const intro=document.getElementById('introScreen');
+  intro.classList.add('hide');
+  setTimeout(()=>intro.remove(),700);
+}
+
+// Auto-dismiss after 3.8s
+setTimeout(skipIntro, 3800);
+
+// ════════════════════════════════════════
+// STARFIELD
+// ════════════════════════════════════════
+function buildStars(){
+  const sf=document.getElementById('starfield');
+  for(let i=0;i<120;i++){
+    const el=document.createElement('div');el.className='star';
+    const s=0.5+Math.random()*2.5;
+    el.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;width:${s}px;height:${s}px;animation-duration:${2+Math.random()*5}s;animation-delay:${Math.random()*5}s;`;
+    sf.appendChild(el);
+  }
+  for(let i=0;i<5;i++){
+    const el=document.createElement('div');el.className='shooting';
+    el.style.cssText=`left:${Math.random()*60}%;top:${Math.random()*40}%;animation-duration:${4+Math.random()*6}s;animation-delay:${Math.random()*10}s;`;
+    sf.appendChild(el);
+  }
+}
+
+// ════════════════════════════════════════
+// SDG DATA
+// ════════════════════════════════════════
+const SDGS=[
+  {id:1,name:"No Poverty",color:"#E5243B",emoji:"🏠",
+    fact:"Over 700 million people live on less than $2.15/day. Extreme poverty was cut in half between 2000–2015, but COVID-19 pushed millions back.",
+    stats:["700M+ in extreme poverty","1 in 10 people affected","$2.15/day threshold"],progress:62},
+  {id:2,name:"Zero Hunger",color:"#DDA63A",emoji:"🌾",
+    fact:"828 million people go hungry every day. Yet we produce enough food to feed 10 billion. The challenge is access, waste, and sustainable farming.",
+    stats:["828M go hungry daily","45M face famine","33% food is wasted"],progress:48},
+  {id:3,name:"Good Health",color:"#4C9F38",emoji:"💊",
+    fact:"Universal healthcare could save 8 million lives per year. Clean air, safe water and vaccines are the world's most powerful medicines.",
+    stats:["8M lives saved/yr w/ UHC","5M children die under 5","2B lack essential medicine"],progress:70},
+  {id:4,name:"Quality Education",color:"#C5192D",emoji:"📚",
+    fact:"300 million children cannot read or write. Education is the single greatest equaliser — it transforms lives across generations.",
+    stats:["300M can't read","244M out of school","Education = 10% income boost"],progress:55},
+  {id:5,name:"Gender Equality",color:"#FF3A21",emoji:"♀️",
+    fact:"Globally, women earn 20% less than men for equal work. Gender equality adds $28 trillion to the global economy and lifts entire societies.",
+    stats:["Women earn 20% less","1 in 3 women face violence","$28T economic gain possible"],progress:44},
+  {id:6,name:"Clean Water",color:"#26BDE2",emoji:"💧",
+    fact:"2.2 billion people lack safe drinking water. By 2050, up to 5.7 billion could face water scarcity for at least one month per year.",
+    stats:["2.2B lack safe water","3.6B lack sanitation","5.7B at risk by 2050"],progress:58},
+  {id:7,name:"Clean Energy",color:"#FCC30B",emoji:"⚡",
+    fact:"Solar and wind are now the cheapest electricity sources in history. 759 million people still lack access to electricity.",
+    stats:["759M without electricity","Renewables = 30% of power","Solar costs fell 90% since 2010"],progress:65},
+  {id:8,name:"Decent Work",color:"#A21942",emoji:"💼",
+    fact:"1.6 billion workers were impacted by the COVID-19 crisis. Decent work means fair pay, safe conditions and equal opportunities for all.",
+    stats:["1.6B workers impacted","200M unemployed globally","Youth unemployment 3x higher"],progress:53},
+  {id:9,name:"Innovation",color:"#FD6925",emoji:"🏗️",
+    fact:"In least developed countries, only 30% of people have internet access. Infrastructure and innovation are the engine of economic growth.",
+    stats:["30% internet in LDCs","Infrastructure = 70% of growth","$15T infrastructure gap"],progress:60},
+  {id:10,name:"Reduced Inequality",color:"#DD1367",emoji:"📊",
+    fact:"The richest 1% own more than double the wealth of 6.9 billion people. Closing the gap makes every society healthier and more stable.",
+    stats:["Top 1% own 50% of wealth","Inequality in 70% of countries","$2.5T/yr to close gap"],progress:38},
+  {id:11,name:"Sustainable Cities",color:"#FD9D24",emoji:"🏙️",
+    fact:"By 2050, 70% of the world will live in cities. Making cities green, safe and inclusive is one of the greatest challenges of our time.",
+    stats:["70% in cities by 2050","1B in slums today","Cities = 75% of emissions"],progress:50},
+  {id:12,name:"Responsible Use",color:"#BF8B2E",emoji:"♻️",
+    fact:"We'd need 3 Earths if everyone consumed like wealthy nations. Food waste alone produces 8-10% of global greenhouse gas emissions.",
+    stats:["3 Earths needed at current pace","1/3 of food is wasted","$2.9T in food waste annually"],progress:42},
+  {id:13,name:"Climate Action",color:"#3F7E44",emoji:"🌡️",
+    fact:"The planet has warmed 1.1°C since pre-industrial times. We have until 2030 to cut emissions by 45% to limit warming to 1.5°C.",
+    stats:["1.1°C warming so far","45% emissions cut needed","$300B/yr climate finance needed"],progress:35},
+  {id:14,name:"Life Below Water",color:"#0A97D9",emoji:"🐟",
+    fact:"Oceans produce 50% of Earth's oxygen and absorb 25% of CO₂. 8 million tonnes of plastic enter our oceans every single year.",
+    stats:["8M tonnes of plastic/yr","50% of oxygen from oceans","90% of big fish are gone"],progress:40},
+  {id:15,name:"Life on Land",color:"#56C02B",emoji:"🌳",
+    fact:"1 million plant and animal species face extinction — the highest rate in human history. Forests are home to 80% of all land species.",
+    stats:["1M species at risk","15B trees cut per year","80% of land species in forests"],progress:43},
+  {id:16,name:"Peace & Justice",color:"#00689D",emoji:"🕊️",
+    fact:"Over 100 million people are forcibly displaced. Peace, strong institutions and access to justice are the bedrock of all other SDGs.",
+    stats:["100M+ displaced","2B live in fragile states","Justice gap affects 5B people"],progress:47},
+  {id:17,name:"Partnerships",color:"#19486A",emoji:"🤝",
+    fact:"No country can achieve the SDGs alone. Official development aid reached $185 billion in 2021 — but the annual gap is still $4.2 trillion.",
+    stats:["$185B aid in 2021","$4.2T annual funding gap","193 countries committed"],progress:55},
+];
+
+// ════════════════════════════════════════
+// BUILD SDG GRID
+// ════════════════════════════════════════
+function buildSDGGrid(){
+  const grid=document.getElementById('sdgGrid');
+  grid.innerHTML='';
+  SDGS.forEach(s=>{
+    const card=document.createElement('div');
+    card.className='sdg-card';
+    card.innerHTML=`
+      <div style="background:${s.color};height:3px;"></div>
+      <div class="sdg-card-top">
+        <div class="sdg-num-badge" style="background:${s.color}">${s.id}</div>
+        <div class="sdg-card-info">
+          <div class="sdg-card-name">${s.emoji} ${s.name}</div>
+        </div>
+      </div>
+      <div class="sdg-card-body">
+        <div class="sdg-fact">${s.fact}</div>
+        <div class="sdg-stat-row">
+          ${s.stats.map(st=>`<div class="sdg-stat">📌 ${st}</div>`).join('')}
+        </div>
+      </div>
+      <div class="sdg-progress-wrap">
+        <div class="sdg-progress-label">Global Progress</div>
+        <div class="sdg-progress-track">
+          <div class="sdg-progress-fill" style="width:0%;background:${s.color}" data-target="${s.progress}"></div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function animateProgressBars(){
+  document.querySelectorAll('.sdg-progress-fill').forEach(bar=>{
+    const target=bar.getAttribute('data-target');
+    setTimeout(()=>{bar.style.width=target+'%';},100);
+  });
+}
+
+// ════════════════════════════════════════
+// NAVIGATION — page-switch style with fade
+// ════════════════════════════════════════
+function showScreen(id){
+  const current=document.querySelector('.screen.active');
+  const next=document.getElementById(id);
+  if(current===next)return;
+
+  current.classList.add('fade-out');
+  setTimeout(()=>{
+    current.classList.remove('active','fade-out');
+    next.classList.add('active','fade-in');
+    // Reset learn body scroll to top
+    const lb=next.querySelector('.learn-body');
+    if(lb)lb.scrollTop=0;
+    setTimeout(()=>next.classList.remove('fade-in'),300);
+  },200);
+  window.scrollTo(0,0);
+}
+
+function showMenu(){showScreen('menuScreen');}
+
+function showLearn(){
+  showScreen('learnScreen');
+  setTimeout(animateProgressBars,400);
+}
+
+function openGame(filename){
+  window.location.href=filename;
+}
+
+// ════════════════════════════════════════
+// AUDIO ENGINE
+// ════════════════════════════════════════
+let AC=null,masterGain=null,musicGain=null;
+let volLevel=0.7,isMuted=false,prevVol=0.7;
+let bgPlaying=false,bgTimeout=null;
+
+function initAudio(){
+  if(AC)return;
+  try{
+    AC=new(window.AudioContext||window.webkitAudioContext)();
+    masterGain=AC.createGain();masterGain.gain.value=volLevel;masterGain.connect(AC.destination);
+    musicGain=AC.createGain();musicGain.gain.value=0.5;musicGain.connect(masterGain);
+  }catch(e){AC=null;}
+}
+
+function makeOsc(freq,type,when,dur,vol,freqEnd){
+  if(!AC)return;
+  const now=when||AC.currentTime;
+  const g=AC.createGain();
+  g.gain.setValueAtTime(0.0001,now);g.gain.linearRampToValueAtTime(vol,now+0.01);
+  g.gain.setValueAtTime(vol,now+dur*0.6);g.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+  g.connect(musicGain);
+  const o=AC.createOscillator();o.type=type;o.frequency.setValueAtTime(freq,now);
+  if(freqEnd)o.frequency.exponentialRampToValueAtTime(freqEnd,now+dur);
+  o.connect(g);o.start(now);o.stop(now+dur+0.01);
+}
+function makeNoise(when,dur,vol,highpass=0){
+  if(!AC)return;
+  const now=when||AC.currentTime;
+  const len=Math.max(1,Math.ceil(AC.sampleRate*dur));
+  const buf=AC.createBuffer(1,len,AC.sampleRate);
+  const d=buf.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+  const src=AC.createBufferSource();src.buffer=buf;
+  const g=AC.createGain();g.gain.setValueAtTime(vol,now);g.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+  if(highpass>0){const f=AC.createBiquadFilter();f.type='highpass';f.frequency.value=highpass;src.connect(f);f.connect(g);}
+  else src.connect(g);
+  g.connect(musicGain);src.start(now);src.stop(now+dur+0.01);
+}
+function kick(when){if(!AC)return;makeOsc(130,'sine',when,0.35,0.7,38);makeNoise(when,0.04,0.2,0);}
+function snare(when){if(!AC)return;makeOsc(180,'triangle',when,0.12,0.4,90);makeNoise(when,0.16,0.35,1200);}
+function hihat(when,vol=0.14){if(!AC)return;makeNoise(when,0.055,vol,7000);}
+function openhat(when){if(!AC)return;makeNoise(when,0.2,0.12,6000);}
+function bass(freq,when,dur){
+  if(!AC)return;
+  const g=AC.createGain();g.gain.setValueAtTime(0.0001,when);g.gain.linearRampToValueAtTime(0.45,when+0.01);
+  g.gain.setValueAtTime(0.45,when+dur*0.4);g.gain.exponentialRampToValueAtTime(0.0001,when+dur);
+  const filt=AC.createBiquadFilter();filt.type='lowpass';filt.frequency.setValueAtTime(700,when);filt.frequency.exponentialRampToValueAtTime(180,when+dur);
+  filt.connect(musicGain);g.connect(filt);
+  const o=AC.createOscillator();o.type='sawtooth';o.frequency.value=freq;o.connect(g);o.start(when);o.stop(when+dur+0.01);
+}
+function pad(freqs,when,dur,vol=0.055){
+  if(!AC)return;
+  freqs.forEach(freq=>{
+    const g=AC.createGain();g.gain.setValueAtTime(0.0001,when);g.gain.linearRampToValueAtTime(vol,when+0.1);
+    g.gain.setValueAtTime(vol,when+dur-0.12);g.gain.linearRampToValueAtTime(0.0001,when+dur);
+    g.connect(musicGain);
+    const o=AC.createOscillator();o.type='sine';o.frequency.value=freq;o.connect(g);o.start(when);o.stop(when+dur+0.01);
+  });
+}
+function lead(freq,when,dur,vol=0.18){
+  if(!AC||!freq)return;
+  const g=AC.createGain();g.gain.setValueAtTime(0.0001,when);g.gain.linearRampToValueAtTime(vol,when+0.015);
+  g.gain.setValueAtTime(vol*0.7,when+dur*0.5);g.gain.exponentialRampToValueAtTime(0.0001,when+dur*0.95);
+  g.connect(musicGain);
+  const o1=AC.createOscillator();o1.type='square';o1.frequency.value=freq;
+  const o2=AC.createOscillator();o2.type='triangle';o2.frequency.value=freq*1.004;
+  const mix=AC.createGain();mix.gain.value=0.5;
+  o1.connect(mix);o2.connect(mix);mix.connect(g);
+  o1.start(when);o1.stop(when+dur);o2.start(when);o2.stop(when+dur);
+}
+
+const BPM=110,BEAT=60/BPM,BAR=BEAT*4;
+const N={C3:130.8,D3:146.8,E3:164.8,G3:196,A3:220,C4:261.6,D4:293.7,E4:329.6,G4:392,A4:440,B4:493.9,C5:523.3,D5:587.3,E5:659.3,G5:784,A5:880,R:0};
+const MELODY=[[N.G4,1],[N.A4,1],[N.C5,2],[N.E5,1],[N.D5,1],[N.C5,1],[N.A4,1],[N.G4,1.5],[N.A4,0.5],[N.C5,2],[N.D5,1],[N.E5,1],[N.G5,2],[N.A5,1],[N.G5,1],[N.E5,1],[N.D5,1],[N.C5,2],[N.G4,1],[N.A4,1],[N.C5,1],[N.D5,1],[N.E5,0.5],[N.D5,0.5],[N.C5,1],[N.G4,2],[N.R,2]];
+const BASSLINE=[N.C3,N.C3,N.G3,N.G3,N.A3,N.A3,N.E3,N.E3];
+const CHORDS=[[N.C4,N.E4,N.G4],[N.G3,N.C4,N.E4],[N.A3,N.C4,N.E4],[N.E3,N.G3,N.C4]];
+
+function startBGMusic(){
+  if(!AC||bgPlaying)return;
+  bgPlaying=true;scheduleBGLoop(AC.currentTime+0.05);
+}
+function scheduleBGLoop(loopStart){
+  if(!bgPlaying||!AC)return;
+  const totalBeats=MELODY.reduce((s,[,b])=>s+b,0);
+  const totalDur=totalBeats*BEAT;
+  let mt=loopStart;
+  MELODY.forEach(([freq,beats])=>{lead(freq,mt,beats*BEAT*0.88,0.16);mt+=beats*BEAT;});
+  for(let bar=0;bar<8;bar++){
+    const bt=loopStart+bar*BAR;
+    bass(BASSLINE[bar],bt,BEAT*0.8);bass(BASSLINE[bar]*2,bt+BEAT*2,BEAT*0.8);
+  }
+  for(let i=0;i<4;i++)pad(CHORDS[i],loopStart+i*BAR*2,BAR*2-0.05,0.05);
+  for(let bar=0;bar<8;bar++){
+    const b=loopStart+bar*BAR;
+    kick(b);kick(b+BEAT*2);
+    snare(b+BEAT);snare(b+BEAT*3);
+    for(let h=0;h<8;h++)hihat(b+h*BEAT*0.5,h%2===0?0.16:0.09);
+    if(bar%2===1){openhat(b+BEAT*0.5);openhat(b+BEAT*2.5);}
+  }
+  const msUntilNext=(loopStart+totalDur-AC.currentTime-0.3)*1000;
+  bgTimeout=setTimeout(()=>{if(bgPlaying)scheduleBGLoop(loopStart+totalDur);},Math.max(100,msUntilNext));
+}
+function stopBGMusic(){bgPlaying=false;clearTimeout(bgTimeout);}
+
+// ════════════════════════════════════════
+// VOLUME CONTROL
+// ════════════════════════════════════════
+function setVol(v){
+  volLevel=parseInt(v)/100;
+  if(isMuted&&volLevel>0){isMuted=false;document.getElementById('muteBtn').textContent='🔊';}
+  applyVol();
+  document.getElementById('volPct').textContent=Math.round(volLevel*100)+'%';
+  document.getElementById('volSlider').style.setProperty('--vp',Math.round(volLevel*100)+'%');
+  updateVolIcon();
+}
+function stepVol(delta){
+  const sl=document.getElementById('volSlider');
+  const nv=Math.max(0,Math.min(100,parseInt(sl.value)+delta));
+  sl.value=nv;setVol(nv);
+}
+function toggleMute(){
+  if(!AC)initAudio();
+  if(isMuted){isMuted=false;volLevel=prevVol||0.6;document.getElementById('volSlider').value=Math.round(volLevel*100);}
+  else{prevVol=volLevel;isMuted=true;volLevel=0;document.getElementById('volSlider').value=0;}
+  applyVol();
+  document.getElementById('muteBtn').textContent=isMuted?'🔇':'🔊';
+  document.getElementById('volPct').textContent=isMuted?'0%':Math.round(volLevel*100)+'%';
+  document.getElementById('volSlider').style.setProperty('--vp',isMuted?'0%':Math.round(volLevel*100)+'%');
+  updateVolIcon();
+}
+function applyVol(){
+  if(!masterGain||!AC)return;
+  masterGain.gain.cancelScheduledValues(AC.currentTime);
+  masterGain.gain.setTargetAtTime(isMuted?0:volLevel,AC.currentTime,0.04);
+}
+function updateVolIcon(){
+  const btn=document.getElementById('volBtn');if(!btn)return;
+  btn.textContent=(isMuted||volLevel===0)?'🔇':volLevel<0.4?'🔉':'🔊';
+}
+function toggleVolPanel(){
+  const p=document.getElementById('volPanel');p.classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  const p=document.getElementById('volPanel'),b=document.getElementById('volBtn');
+  if(p&&b&&!p.contains(e.target)&&!b.contains(e.target))p.classList.remove('open');
+});
+document.addEventListener('click',function startOnce(){
+  initAudio();
+  if(AC&&AC.state==='suspended')AC.resume().then(()=>startBGMusic());
+  else startBGMusic();
+  document.removeEventListener('click',startOnce);
+},{once:true});
+window.addEventListener('load',()=>{
+  const sl=document.getElementById('volSlider');if(sl)sl.style.setProperty('--vp','70%');
+});
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+buildStars();
+buildSDGGrid();
+</script>
+</body>
+</html>

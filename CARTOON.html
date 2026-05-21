@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦸 SDG Heroes – Save the World!</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--black:#0a0a0a;--yellow:#FFE600;--red:#FF2D2D;--blue:#0057FF;--green:#00C851}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Bangers',cursive;background:var(--yellow);overflow:hidden;width:100vw;height:100vh}
+#stage{width:100vw;height:100vh;position:relative;overflow:hidden;background:var(--yellow)}
+#stage::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(0,0,0,.14) 1.5px,transparent 1.5px);background-size:16px 16px;pointer-events:none;z-index:1}
+.panel-bg{position:absolute;inset:0;transition:background .6s;z-index:0}
+.comic-border-top{position:absolute;top:0;left:0;right:0;height:7px;background:var(--black);z-index:5}
+.comic-border-bot{position:absolute;bottom:0;left:0;right:0;height:7px;background:var(--black);z-index:5}
+
+/* ===== ACTION WORDS ===== */
+.action-word{position:absolute;font-family:'Bangers',cursive;font-size:clamp(40px,10vw,110px);
+  -webkit-text-stroke:4px var(--black);text-shadow:7px 7px 0 var(--black);
+  transform:rotate(-12deg) scale(0);z-index:95;pointer-events:none;
+  animation:actionPop .5s cubic-bezier(.34,1.56,.64,1) forwards;letter-spacing:2px}
+@keyframes actionPop{to{transform:rotate(-7deg) scale(1)}}
+.aw-pow{color:#FF2D2D} .aw-wow{color:#00D4FF} .aw-zap{color:#FFE600} .aw-boom{color:#FF8C00}
+.aw-yum{color:#FF69B4} .aw-roar{color:#FF4500} .aw-splash{color:#00BFFF}
+
+/* ===== SPEED LINES ===== */
+.speed-lines{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:0;transition:opacity .15s}
+.speed-lines.active{opacity:1}
+.speed-line{position:absolute;height:2px;background:linear-gradient(90deg,transparent,rgba(0,0,0,.2));transform-origin:right center}
+
+/* ===== SCREEN FLASH ===== */
+#screenFlash{position:absolute;inset:0;z-index:200;pointer-events:none;opacity:0;transition:opacity .08s}
+
+/* ===== NARRATOR BOX ===== */
+#narratorBox{position:absolute;bottom:75px;left:50%;transform:translateX(-50%);
+  background:white;border:5px solid var(--black);padding:11px 28px;
+  max-width:min(820px,93vw);text-align:center;z-index:100;
+  box-shadow:6px 6px 0 var(--black);min-height:56px;
+  display:flex;align-items:center;justify-content:center;gap:10px}
+#narratorBox::before{content:'📢';font-size:20px;flex-shrink:0}
+#narratorText{font-family:'Bangers',cursive;font-size:clamp(.9rem,2.5vw,1.4rem);color:var(--black);letter-spacing:.5px;line-height:1.3}
+#narratorText .hi{color:var(--red)} #narratorText .goal{color:var(--blue)}
+
+
+/* ===== MUSIC CONTROLS BAR ===== */
+#musicBar{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:6px;
+  background:var(--black);border:4px solid var(--yellow);
+  padding:6px 14px;z-index:110;box-shadow:4px 4px 0 var(--yellow);
+  white-space:nowrap;
+}
+#musicBar .note-anim{font-size:18px;animation:noteBounce .6s ease-in-out infinite alternate}
+@keyframes noteBounce{from{transform:translateY(0) rotate(-10deg)}to{transform:translateY(-5px) rotate(10deg)}}
+.mb-btn{
+  width:36px;height:36px;border:3px solid var(--yellow);background:var(--yellow);
+  color:var(--black);font-size:16px;cursor:pointer;font-family:'Bangers',cursive;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:3px 3px 0 rgba(255,255,255,.3);transition:transform .1s,box-shadow .1s;
+  flex-shrink:0;
+}
+.mb-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(255,255,255,.3)}
+.mb-btn:hover{background:white}
+#muteBtn{font-size:18px}
+/* Volume slider */
+#volSlider{
+  -webkit-appearance:none;appearance:none;
+  width:clamp(70px,12vw,120px);height:10px;
+  border-radius:0;border:3px solid var(--yellow);
+  background:var(--black);outline:none;cursor:pointer;
+}
+#volSlider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:var(--yellow);border:3px solid var(--black);cursor:pointer}
+#volSlider::-moz-range-thumb{width:18px;height:18px;background:var(--yellow);border:3px solid var(--black);cursor:pointer;border-radius:0}
+#volPct{font-family:'Bangers',cursive;color:var(--yellow);font-size:1rem;min-width:38px;text-align:right}
+.mb-label{font-family:'Bangers',cursive;color:var(--yellow);font-size:.85rem;letter-spacing:1px}
+
+/* ===== SDG BADGE ===== */
+#sdgBadge{position:absolute;top:12px;left:12px;border:5px solid var(--black);padding:8px 16px;
+  display:flex;align-items:center;gap:8px;z-index:100;box-shadow:5px 5px 0 var(--black);
+  transition:background .3s;opacity:0}
+#sdgBadgeNum{font-size:clamp(1.3rem,2.8vw,2rem);color:white;-webkit-text-stroke:1px var(--black)}
+#sdgBadgeName{font-size:clamp(.65rem,1.4vw,.9rem);color:white;max-width:130px;line-height:1.2;font-family:'Comic Neue',cursive;font-weight:700}
+#sdgBadgeIcon{font-size:clamp(1.5rem,2.8vw,2.2rem)}
+
+/* ===== PROGRESS DOTS ===== */
+#progressWrap{position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  display:flex;gap:4px;z-index:100;background:white;border:4px solid var(--black);
+  padding:5px 8px;box-shadow:4px 4px 0 var(--black)}
+.pdot{width:clamp(7px,1.1vw,12px);height:clamp(7px,1.1vw,12px);border-radius:50%;
+  border:3px solid var(--black);background:white;transition:background .3s,transform .3s}
+.pdot.done{background:var(--black)}.pdot.active{background:var(--red);transform:scale(1.35);border-color:var(--red)}
+
+/* ===== CHARACTERS ===== */
+#maya,#leo,#robo{
+  position:absolute;bottom:22%;z-index:50;
+  display:flex;flex-direction:column;align-items:center;gap:0;
+  transition:left 1.1s cubic-bezier(.25,.46,.45,.94);
+  filter:drop-shadow(4px 4px 0 var(--black));
+}
+.char-svg{width:clamp(56px,8.5vw,90px);height:auto}
+
+/* Animations */
+.walking .char-svg{animation:comicWalk .28s steps(2) infinite}
+@keyframes comicWalk{0%{transform:rotate(-5deg) translateY(0)}50%{transform:rotate(5deg) translateY(-5px)}100%{transform:rotate(-5deg) translateY(0)}}
+.talking .char-svg{animation:comicTalk .22s steps(2) infinite}
+@keyframes comicTalk{0%{transform:scaleY(1)}50%{transform:scaleY(1.05) translateY(-4px)}100%{transform:scaleY(1)}}
+.happy .char-svg{animation:comicHappy .38s steps(3) infinite}
+@keyframes comicHappy{0%{transform:translateY(0) rotate(-4deg)}33%{transform:translateY(-18px) rotate(5deg) scale(1.07)}66%{transform:translateY(-8px) rotate(-2deg)}100%{transform:translateY(0) rotate(-4deg)}}
+.waving .char-svg{animation:comicWave .4s ease-in-out infinite alternate}
+@keyframes comicWave{from{transform:rotate(-12deg)}to{transform:rotate(12deg)}}
+/* FUNNY animations */
+.spinning .char-svg{animation:comicSpin .5s linear infinite}
+@keyframes comicSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.shaking .char-svg{animation:comicShake .1s ease-in-out infinite}
+@keyframes comicShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px) rotate(-3deg)}75%{transform:translateX(6px) rotate(3deg)}}
+.squishing .char-svg{animation:comicSquish .4s ease-in-out infinite alternate}
+@keyframes comicSquish{from{transform:scaleX(1.2) scaleY(.85)}to{transform:scaleX(.85) scaleY(1.2)}}
+.floating .char-svg{animation:comicFloat 1s ease-in-out infinite alternate}
+@keyframes comicFloat{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-20px) rotate(5deg)}}
+
+/* ===== SPEECH BUBBLES ===== */
+.speech{
+  position:absolute;bottom:104%;left:50%;transform:translateX(-50%);
+  background:white;border:4px solid var(--black);border-radius:18px 18px 18px 4px;
+  padding:7px 14px;font-family:'Bangers',cursive;font-size:clamp(.62rem,1.4vw,.92rem);
+  white-space:nowrap;color:var(--black);box-shadow:4px 4px 0 var(--black);
+  opacity:0;transition:opacity .2s;pointer-events:none;z-index:200;letter-spacing:.5px;
+}
+.speech::after{content:'';position:absolute;bottom:-14px;left:16px;border:8px solid transparent;border-top-color:var(--black)}
+.speech::before{content:'';position:absolute;bottom:-10px;left:17px;border:7px solid transparent;border-top-color:white;z-index:1}
+.speech.show{opacity:1}
+#robo .speech{border-radius:4px;background:#e0f7ff;border-color:var(--blue);box-shadow:4px 4px 0 var(--blue);color:var(--blue)}
+#robo .speech::after{border-top-color:var(--blue)}
+#robo .speech::before{border-top-color:#e0f7ff}
+
+.char-tag{font-family:'Bangers',cursive;font-size:clamp(.62rem,1.3vw,.9rem);background:var(--yellow);border:3px solid var(--black);padding:2px 10px;color:var(--black);box-shadow:3px 3px 0 var(--black);margin-bottom:3px;letter-spacing:1px}
+
+/* ===== SDG ICON POP ===== */
+#sdgIconPop{
+  position:absolute;top:47%;left:50%;
+  transform:translate(-50%,-50%) scale(0) rotate(-15deg);
+  z-index:80;width:clamp(108px,17vw,162px);height:clamp(108px,17vw,162px);
+  border:6px solid var(--black);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  box-shadow:8px 8px 0 var(--black);transition:transform .5s cubic-bezier(.34,1.56,.64,1),opacity .4s;opacity:0;
+}
+#sdgIconPop.show{transform:translate(-50%,-50%) scale(1) rotate(-2deg);opacity:1}
+#sdgIconEmoji{font-size:clamp(42px,7.5vw,70px);filter:drop-shadow(2px 2px 0 rgba(0,0,0,.4))}
+#sdgIconLabel{font-family:'Bangers',cursive;font-size:clamp(.62rem,1.3vw,.88rem);color:white;text-align:center;padding:0 6px;-webkit-text-stroke:.5px var(--black);text-shadow:2px 2px 0 var(--black)}
+.starburst{position:absolute;inset:-26px;background:var(--yellow);
+  clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  z-index:-1;animation:starSpin 2s linear infinite;border:none}
+@keyframes starSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* ===== ENV ELEMENTS ===== */
+.env-el{position:absolute;font-size:var(--sz,38px);animation:envBob var(--dur,3s) ease-in-out infinite alternate;animation-delay:var(--del,0s);filter:drop-shadow(3px 3px 0 rgba(0,0,0,.25))}
+@keyframes envBob{from{transform:translateY(0) rotate(var(--r1,-3deg))}to{transform:translateY(var(--ty,-10px)) rotate(var(--r2,3deg))}}
+
+/* ===== FUNNY FLOATING EMOJIS ===== */
+.funny-float{
+  position:absolute;font-size:var(--fsz,28px);
+  animation:funnyFloat var(--fdur,2s) ease-out forwards;
+  pointer-events:none;z-index:95;
+}
+@keyframes funnyFloat{
+  0%{transform:translateY(0) scale(.5) rotate(0deg);opacity:1}
+  60%{transform:translateY(-80px) scale(1.2) rotate(20deg);opacity:1}
+  100%{transform:translateY(-160px) scale(.8) rotate(-10deg);opacity:0}
+}
+
+/* ===== STAR BURST EFFECT ===== */
+.starburst-fx{
+  position:absolute;pointer-events:none;z-index:93;
+  animation:starBurstFx .7s ease-out forwards;
+  font-size:var(--ssz,24px);
+}
+@keyframes starBurstFx{
+  0%{transform:translate(-50%,-50%) scale(0);opacity:1}
+  50%{transform:translate(var(--tx),var(--ty)) scale(1.2);opacity:1}
+  100%{transform:translate(calc(var(--tx)*2),calc(var(--ty)*2)) scale(.5);opacity:0}
+}
+
+/* ===== WOBBLE TEXT ===== */
+.wobble-text{
+  position:absolute;font-family:'Bangers',cursive;
+  font-size:clamp(20px,5vw,50px);
+  color:white;-webkit-text-stroke:3px var(--black);
+  text-shadow:4px 4px 0 var(--black);
+  animation:wobbleIn .4s cubic-bezier(.34,1.56,.64,1) forwards, wobbleOut .3s ease-in var(--wout,1.5s) forwards;
+  z-index:96;pointer-events:none;letter-spacing:1px;
+}
+@keyframes wobbleIn{from{transform:scale(0) rotate(-20deg)}to{transform:scale(1) rotate(5deg)}}
+@keyframes wobbleOut{from{opacity:1}to{opacity:0;transform:scale(1.3) rotate(10deg)}}
+
+/* ===== CLOUDS ===== */
+.cloud-c{position:absolute;font-size:clamp(38px,6.5vw,66px);opacity:.18;animation:cloudDrift var(--spd,30s) linear infinite;top:var(--top,8%);filter:grayscale(1)}
+@keyframes cloudDrift{from{left:110%}to{left:-20%}}
+#sun{position:absolute;top:50px;right:80px;font-size:clamp(40px,6.5vw,68px);animation:sunPop 3s ease-in-out infinite;filter:drop-shadow(3px 3px 0 var(--black));z-index:10}
+@keyframes sunPop{0%,100%{transform:scale(1) rotate(-5deg)}50%{transform:scale(1.09) rotate(5deg)}}
+
+/* ===== TITLE CARD ===== */
+#titleCard{position:absolute;inset:0;background:var(--yellow);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .8s;overflow:hidden}
+#titleCard::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(0,0,0,.13) 2px,transparent 2px);background-size:20px 20px}
+.tb1{position:absolute;font-size:clamp(80px,18vw,180px);opacity:.09;transform:rotate(-20deg);top:-2%;left:-3%;font-family:'Bangers',cursive;color:var(--red);-webkit-text-stroke:4px var(--black)}
+.tb2{position:absolute;font-size:clamp(60px,14vw,140px);opacity:.09;bottom:5%;right:-2%;transform:rotate(15deg);font-family:'Bangers',cursive;color:var(--blue);-webkit-text-stroke:4px var(--black)}
+.t-strip{font-family:'Bangers',cursive;font-size:clamp(.9rem,2.5vw,1.7rem);color:var(--black);letter-spacing:3px;background:var(--red);padding:4px 24px;display:inline-block;transform:rotate(-2deg);box-shadow:4px 4px 0 var(--black);position:relative;z-index:2;animation:tIn .6s cubic-bezier(.34,1.56,.64,1) .2s both}
+@keyframes tIn{from{transform:rotate(-2deg) translateY(-30px);opacity:0}to{transform:rotate(-2deg) translateY(0);opacity:1}}
+.t-main{font-family:'Bangers',cursive;font-size:clamp(3rem,10vw,7rem);line-height:.95;position:relative;z-index:2;text-align:center;animation:tMainIn .7s cubic-bezier(.34,1.56,.64,1) .4s both}
+@keyframes tMainIn{from{transform:scale(0) rotate(-10deg)}to{transform:scale(1)}}
+.t-yr{color:var(--black);-webkit-text-stroke:3px var(--black)}
+.t-yb{color:var(--blue);-webkit-text-stroke:4px var(--black);text-shadow:5px 5px 0 var(--black)}
+.t-sub{font-family:'Bangers',cursive;font-size:clamp(.85rem,2.4vw,1.7rem);background:var(--blue);color:white;padding:6px 22px;border:4px solid var(--black);box-shadow:5px 5px 0 var(--black);display:inline-block;letter-spacing:1px;transform:rotate(1deg);position:relative;z-index:2;animation:tSubIn .6s ease .7s both}
+@keyframes tSubIn{from{transform:translateY(20px) rotate(1deg);opacity:0}to{opacity:1}}
+.t-chars{display:flex;gap:clamp(10px,3vw,28px);position:relative;z-index:2;animation:tCharsIn .9s cubic-bezier(.34,1.56,.64,1) .9s both}
+@keyframes tCharsIn{from{transform:translateY(40px);opacity:0}to{opacity:1}}
+.t-char{display:flex;flex-direction:column;align-items:center;gap:4px;animation:tCharBounce 1s ease-in-out infinite alternate}
+.t-char:nth-child(2){animation-delay:.25s}.t-char:nth-child(3){animation-delay:.5s}
+@keyframes tCharBounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+.t-clabel{font-family:'Bangers',cursive;font-size:clamp(.6rem,1.3vw,.9rem);background:var(--black);color:var(--yellow);padding:2px 10px;letter-spacing:1px}
+.t-tap{font-family:'Bangers',cursive;font-size:clamp(.8rem,2vw,1.3rem);color:var(--black);background:white;border:4px solid var(--black);padding:6px 20px;box-shadow:4px 4px 0 var(--black);position:relative;z-index:2;animation:tapPulse 1s ease-in-out infinite alternate .9s both}
+@keyframes tapPulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+
+/* ===== FINAL CARD ===== */
+#finalCard{position:absolute;inset:0;background:var(--black);z-index:200;opacity:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .8s;padding:16px;overflow:hidden}
+#finalCard::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,230,0,.15) 2px,transparent 2px);background-size:18px 18px}
+#finalCard.show{opacity:1;pointer-events:all}
+.f-title{font-family:'Bangers',cursive;font-size:clamp(1.8rem,5.5vw,4.8rem);color:var(--yellow);-webkit-text-stroke:3px var(--black);text-shadow:6px 6px 0 rgba(255,45,45,.7);text-align:center;line-height:1;position:relative;z-index:2}
+.f-sub{font-family:'Bangers',cursive;font-size:clamp(.8rem,1.9vw,1.3rem);color:white;text-align:center;background:var(--red);padding:8px 22px;border:4px solid var(--yellow);box-shadow:5px 5px 0 var(--yellow);max-width:520px;position:relative;z-index:2}
+.f-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(4px,.9vw,9px);max-width:min(490px,92vw);position:relative;z-index:2}
+.fg-item{aspect-ratio:1;border:3px solid var(--yellow);display:flex;align-items:center;justify-content:center;font-size:clamp(13px,2.8vw,23px);opacity:0;transform:scale(0) rotate(-10deg);animation:fgPop .4s cubic-bezier(.34,1.56,.64,1) var(--d) forwards;box-shadow:3px 3px 0 var(--yellow)}
+@keyframes fgPop{to{opacity:1;transform:scale(1) rotate(-1deg)}}
+.btn-again{padding:12px 36px;font-family:'Bangers',cursive;font-size:clamp(.95rem,2.4vw,1.5rem);border:5px solid var(--black);background:var(--yellow);color:var(--black);cursor:pointer;box-shadow:6px 6px 0 var(--yellow);letter-spacing:1px;transition:transform .15s,box-shadow .15s;position:relative;z-index:2}
+.btn-again:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--yellow)}
+.btn-again:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--yellow)}
+
+/* EXIT BUTTON STYLE */
+.exit-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 210; /* Higher than titleCard and finalCard */
+  padding: 8px 20px;
+  background: var(--red);
+  color: white;
+  font-family: 'Bangers', cursive;
+  font-size: 1.2rem;
+  border: 4px solid var(--black);
+  box-shadow: 4px 4px 0 var(--black);
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.1s;
+}
+
+.exit-btn:hover {
+  transform: scale(1.05);
+  background: #ff4d4d;
+}
+
+.exit-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--black);
+}
+
+/* Confetti */
+.conf{position:fixed;top:-30px;font-size:clamp(14px,3vw,22px);animation:confFall var(--dur,3s) linear var(--del,0s) forwards;z-index:300;pointer-events:none}
+@keyframes confFall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <a href="MISSION17.html" class="exit-btn">
+  <span>EXIT</span> 🚀
+  </a>
+  <div class="panel-bg" id="panelBg"></div>
+  <div class="comic-border-top"></div>
+  <div class="comic-border-bot"></div>
+  <div class="speed-lines" id="speedLines"></div>
+  <div id="screenFlash"></div>
+
+  <div class="cloud-c" style="--spd:26s;--top:7%">☁</div>
+  <div class="cloud-c" style="--spd:19s;--top:13%;animation-delay:-9s">☁</div>
+  <div id="sun">☀️</div>
+  <div id="progressWrap"></div>
+  <div id="envContainer"></div>
+
+  <!-- SDG Icon Pop -->
+  <div id="sdgIconPop">
+    <div class="starburst"></div>
+    <div id="sdgIconEmoji">🏘️</div>
+    <div id="sdgIconLabel">No Poverty</div>
+  </div>
+
+  <!-- MAYA -->
+  <div id="maya">
+    <div class="speech" id="mayaSpeech"></div>
+    <div class="char-tag">MAYA</div>
+    <svg class="char-svg" viewBox="0 0 80 116" xmlns="http://www.w3.org/2000/svg">
+      <g stroke="#0a0a0a" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="28" cy="113" rx="9" ry="5" fill="#1a1a2e" stroke-width="2.5"/>
+      <ellipse cx="52" cy="113" rx="9" ry="5" fill="#1a1a2e" stroke-width="2.5"/>
+      <rect x="23" y="88" width="12" height="27" rx="6" fill="#FDBA74" stroke-width="2.5"/>
+      <rect x="45" y="88" width="12" height="27" rx="6" fill="#FDBA74" stroke-width="2.5"/>
+      <path d="M18 76 Q20 96 28 101 Q40 106 52 101 Q60 96 62 76Z" fill="#FF2D2D" stroke-width="2.5"/>
+      <rect x="20" y="52" width="40" height="28" rx="10" fill="#FF2D2D" stroke-width="2.5"/>
+      <rect x="20" y="62" width="40" height="6" rx="3" fill="#CC0000" stroke-width="1.5"/>
+      <path d="M20 58 Q8 63 6 73" stroke-width="4" fill="none" stroke="#FDBA74"/>
+      <circle cx="5" cy="75" r="5" fill="#FDBA74" stroke-width="2"/>
+      <path d="M60 58 Q72 54 76 44" stroke-width="4" fill="none" stroke="#FDBA74"/>
+      <circle cx="77" cy="42" r="5" fill="#FDBA74" stroke-width="2"/>
+      <rect x="33" y="44" width="14" height="11" rx="4" fill="#FDBA74" stroke-width="2"/>
+      <circle cx="40" cy="30" r="23" fill="#FBBF24" stroke-width="3"/>
+      <ellipse cx="40" cy="10" rx="23" ry="10" fill="#7C2D12" stroke-width="2.5"/>
+      <ellipse cx="17" cy="24" rx="9" ry="15" fill="#7C2D12" stroke-width="2.5"/>
+      <ellipse cx="63" cy="24" rx="9" ry="15" fill="#7C2D12" stroke-width="2.5"/>
+      <path d="M52 12 Q58 8 56 16 Q60 18 64 14 Q60 22 56 18 Q52 22 52 16 Q46 20 50 16 Q48 10 52 12Z" fill="#FF2D2D" stroke-width="1.5"/>
+      <circle cx="32" cy="30" r="5" fill="white" stroke-width="2"/>
+      <circle cx="48" cy="30" r="5" fill="white" stroke-width="2"/>
+      <circle cx="33" cy="31" r="3" fill="#1a1a2e" stroke="none"/>
+      <circle cx="49" cy="31" r="3" fill="#1a1a2e" stroke="none"/>
+      <circle cx="34.5" cy="30" r="1.2" fill="white" stroke="none"/>
+      <circle cx="50.5" cy="30" r="1.2" fill="white" stroke="none"/>
+      <line x1="28" y1="26" x2="26" y2="24" stroke-width="2"/>
+      <line x1="32" y1="25" x2="31" y2="22" stroke-width="2"/>
+      <path d="M33 39 Q40 46 47 39" stroke-width="2.5" fill="none" stroke="#7C2D12"/>
+      <circle cx="26" cy="37" r="5" fill="#FCA5A5" opacity=".7" stroke="none"/>
+      <circle cx="54" cy="37" r="5" fill="#FCA5A5" opacity=".7" stroke="none"/>
+      <rect x="60" y="54" width="13" height="19" rx="4" fill="#FFD700" stroke-width="2"/>
+      <rect x="62" y="58" width="9" height="6" rx="2" fill="#FF8C00" stroke-width="1.5"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- LEO -->
+  <div id="leo">
+    <div class="speech" id="leoSpeech"></div>
+    <div class="char-tag">LEO</div>
+    <svg class="char-svg" viewBox="0 0 80 116" xmlns="http://www.w3.org/2000/svg">
+      <g stroke="#0a0a0a" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="28" cy="113" rx="9" ry="5.5" fill="#1a1a2e" stroke-width="2.5"/>
+      <ellipse cx="52" cy="113" rx="9" ry="5.5" fill="#1a1a2e" stroke-width="2.5"/>
+      <rect x="23" y="86" width="13" height="29" rx="6" fill="#1D4ED8" stroke-width="2.5"/>
+      <rect x="44" y="86" width="13" height="29" rx="6" fill="#1D4ED8" stroke-width="2.5"/>
+      <rect x="19" y="52" width="42" height="38" rx="10" fill="#0057FF" stroke-width="3"/>
+      <circle cx="40" cy="67" r="10" fill="#003DBD" stroke-width="2"/>
+      <text x="40" y="72" text-anchor="middle" font-family="Bangers,cursive" font-size="14" fill="#FFE600" stroke="none">17</text>
+      <path d="M19 60 Q6 66 4 77" stroke-width="4.5" fill="none" stroke="#FDBA74"/>
+      <circle cx="3" cy="79" r="5.5" fill="#FDBA74" stroke-width="2"/>
+      <path d="M61 60 Q74 56 78 67" stroke-width="4.5" fill="none" stroke="#FDBA74"/>
+      <circle cx="79" cy="69" r="5.5" fill="#FDBA74" stroke-width="2"/>
+      <rect x="33" y="44" width="14" height="11" rx="4" fill="#FDBA74" stroke-width="2"/>
+      <circle cx="40" cy="29" r="23" fill="#FBBF24" stroke-width="3"/>
+      <ellipse cx="40" cy="10" rx="20" ry="9" fill="#1a1a2e" stroke-width="2"/>
+      <polygon points="20,16 14,4 26,14" fill="#1a1a2e"/><polygon points="30,9 28,-2 34,10" fill="#1a1a2e"/>
+      <polygon points="40,7 39,-4 44,8" fill="#1a1a2e"/><polygon points="50,9 52,-1 54,10" fill="#1a1a2e"/>
+      <polygon points="60,16 66,4 54,14" fill="#1a1a2e"/>
+      <circle cx="32" cy="29" r="5" fill="white" stroke-width="2"/>
+      <circle cx="48" cy="29" r="5" fill="white" stroke-width="2"/>
+      <circle cx="33" cy="30" r="3" fill="#1a1a2e" stroke="none"/>
+      <circle cx="49" cy="30" r="3" fill="#1a1a2e" stroke="none"/>
+      <circle cx="34.5" cy="29" r="1.2" fill="white" stroke="none"/>
+      <circle cx="50.5" cy="29" r="1.2" fill="white" stroke="none"/>
+      <line x1="28" y1="23" x2="36" y2="24" stroke-width="2.5"/>
+      <line x1="44" y1="24" x2="52" y2="23" stroke-width="2.5"/>
+      <path d="M31 38 Q40 47 49 38" stroke-width="2.5" fill="#fff5e0" stroke="#7C2D12"/>
+      <line x1="37" y1="38" x2="37" y2="44" stroke-width="1.5"/><line x1="40" y1="38" x2="40" y2="45" stroke-width="1.5"/><line x1="43" y1="38" x2="43" y2="44" stroke-width="1.5"/>
+      <circle cx="26" cy="36" r="5" fill="#FCA5A5" opacity=".6" stroke="none"/>
+      <circle cx="54" cy="36" r="5" fill="#FCA5A5" opacity=".6" stroke="none"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ROBO -->
+  <div id="robo">
+    <div class="speech" id="roboSpeech"></div>
+    <div class="char-tag">ROBO</div>
+    <svg class="char-svg" viewBox="0 0 80 116" xmlns="http://www.w3.org/2000/svg">
+      <g stroke="#0a0a0a" stroke-linejoin="round" stroke-linecap="round">
+      <rect x="20" y="106" width="16" height="10" rx="5" fill="#4C1D95" stroke-width="2.5"/>
+      <rect x="44" y="106" width="16" height="10" rx="5" fill="#4C1D95" stroke-width="2.5"/>
+      <rect x="23" y="86" width="13" height="23" rx="5" fill="#6D28D9" stroke-width="2.5"/>
+      <rect x="44" y="86" width="13" height="23" rx="5" fill="#6D28D9" stroke-width="2.5"/>
+      <rect x="15" y="52" width="50" height="38" rx="12" fill="#7C3AED" stroke-width="3"/>
+      <rect x="22" y="58" width="36" height="24" rx="6" fill="#5B21B6" stroke-width="2"/>
+      <circle cx="30" cy="66" r="4" fill="#4ADE80" stroke-width="1.5"/>
+      <circle cx="40" cy="66" r="4" fill="#FBBF24" stroke-width="1.5"/>
+      <circle cx="50" cy="66" r="4" fill="#FF2D2D" stroke-width="1.5"/>
+      <rect x="26" y="73" width="28" height="6" rx="2" fill="#0a0a0a" stroke-width="1.5"/>
+      <rect x="28" y="74.5" width="6" height="3" rx="1" fill="#4ADE80" stroke="none"/>
+      <rect x="36" y="74.5" width="6" height="3" rx="1" fill="#FBBF24" stroke="none"/>
+      <rect x="44" y="74.5" width="6" height="3" rx="1" fill="#FF2D2D" stroke="none"/>
+      <path d="M15 62 Q2 67 0 79" stroke-width="5" fill="none" stroke="#7C3AED"/>
+      <circle cx="0" cy="81" r="7" fill="#6D28D9" stroke-width="2.5"/>
+      <path d="M65 62 Q76 58 80 69" stroke-width="5" fill="none" stroke="#7C3AED"/>
+      <circle cx="80" cy="71" r="7" fill="#6D28D9" stroke-width="2.5"/>
+      <rect x="34" y="44" width="12" height="11" rx="3" fill="#6D28D9" stroke-width="2.5"/>
+      <circle cx="33" cy="46" r="2.5" fill="#4C1D95" stroke-width="1.5"/>
+      <circle cx="47" cy="46" r="2.5" fill="#4C1D95" stroke-width="1.5"/>
+      <rect x="12" y="10" width="56" height="38" rx="14" fill="#8B5CF6" stroke-width="3.5"/>
+      <rect x="37" y="1" width="6" height="12" rx="3" fill="#A78BFA" stroke-width="2"/>
+      <circle cx="40" cy="0" r="6" fill="#FBBF24" stroke-width="2.5"/>
+      <circle cx="40" cy="0" r="3" fill="#FF8C00" stroke="none"/>
+      <rect x="17" y="18" width="17" height="13" rx="5" fill="#0a0a0a" stroke-width="2"/>
+      <rect x="46" y="18" width="17" height="13" rx="5" fill="#0a0a0a" stroke-width="2"/>
+      <circle cx="25.5" cy="24.5" r="5" fill="#22D3EE" stroke="none"/>
+      <circle cx="54.5" cy="24.5" r="5" fill="#22D3EE" stroke="none"/>
+      <circle cx="27" cy="23" r="2" fill="white" stroke="none"/>
+      <circle cx="56" cy="23" r="2" fill="white" stroke="none"/>
+      <rect x="20" y="35" width="40" height="9" rx="4" fill="#0a0a0a" stroke-width="2"/>
+      <rect x="22" y="37" width="4" height="5" rx="1" fill="#4ADE80" stroke="none"/>
+      <rect x="28" y="36" width="4" height="6" rx="1" fill="#4ADE80" stroke="none"/>
+      <rect x="34" y="36" width="4" height="7" rx="1" fill="#FBBF24" stroke="none"/>
+      <rect x="40" y="36" width="4" height="6" rx="1" fill="#4ADE80" stroke="none"/>
+      <rect x="46" y="37" width="4" height="5" rx="1" fill="#4ADE80" stroke="none"/>
+      <circle cx="13" cy="24" r="3.5" fill="#5B21B6" stroke-width="1.5"/>
+      <circle cx="67" cy="24" r="3.5" fill="#5B21B6" stroke-width="1.5"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- SDG Badge -->
+  <div id="sdgBadge"><div id="sdgBadgeIcon">🏘️</div><div><div id="sdgBadgeNum">SDG 1</div><div id="sdgBadgeName">No Poverty</div></div></div>
+
+  <!-- Narrator -->
+  <div id="narratorBox"><div id="narratorText">POW! 💥 Ready for an <span class="hi">EPIC</span> world adventure?!</div></div>
+
+  <!-- MUSIC CONTROLS BAR -->
+  <div id="musicBar">
+    <span class="note-anim">🎵</span>
+    <span class="mb-label">MUSIC</span>
+    <button class="mb-btn" id="muteBtn" onclick="toggleMute()" title="Mute/Unmute">🔊</button>
+    <button class="mb-btn" onclick="changeVol(-10)" title="Volume Down">➖</button>
+    <input type="range" id="volSlider" min="0" max="100" value="60" oninput="setVolume(this.value)" title="Volume"/>
+    <button class="mb-btn" onclick="changeVol(10)" title="Volume Up">➕</button>
+    <span id="volPct">60%</span>
+    <span class="note-anim" style="animation-delay:.3s">🎶</span>
+  </div>
+
+  <!-- TITLE CARD -->
+  <div id="titleCard">
+    <div class="tb1">POW!</div>
+    <div class="tb2">ZAP!</div>
+    <div class="t-strip">⚡ HERO KIDS PRESENTS ⚡</div>
+    <div class="t-main"><span class="t-yr">SDG </span><span class="t-yb">HEROES!</span></div>
+    <div class="t-sub">17 GOALS · SAVE THE WORLD · LET'S GO!</div>
+    <div class="t-chars">
+      <div class="t-char"><svg width="68" viewBox="0 0 80 80"><circle cx="40" cy="40" r="38" fill="#FF2D2D" stroke="#0a0a0a" stroke-width="3"/><text x="40" y="55" text-anchor="middle" font-size="40">😊</text></svg><div class="t-clabel">MAYA</div></div>
+      <div class="t-char"><svg width="68" viewBox="0 0 80 80"><circle cx="40" cy="40" r="38" fill="#0057FF" stroke="#0a0a0a" stroke-width="3"/><text x="40" y="55" text-anchor="middle" font-size="40">😄</text></svg><div class="t-clabel">LEO</div></div>
+      <div class="t-char"><svg width="68" viewBox="0 0 80 80"><circle cx="40" cy="40" r="38" fill="#7C3AED" stroke="#0a0a0a" stroke-width="3"/><text x="40" y="55" text-anchor="middle" font-size="40">🤖</text></svg><div class="t-clabel">ROBO</div></div>
+    </div>
+    <div class="t-tap">👆 TAP ANYWHERE TO START WITH MUSIC! 🎵</div>
+  </div>
+
+  <!-- FINAL CARD -->
+  <div id="finalCard">
+    <div class="f-title">🌍 MISSION COMPLETE! 🌍</div>
+    <div class="f-grid" id="finalGrid"></div>
+    <div class="f-sub">ALL 17 GOALS UNLOCKED! TOGETHER WE SAVE THE WORLD! 🦸</div>
+    <button class="btn-again" onclick="location.reload()">▶ PLAY AGAIN!</button>
+  </div>
+</div>
+
+<script>
+// ================================================================
+//  🎵 CONTINUOUS MUSIC ENGINE
+// ================================================================
+let audioCtx = null;
+let masterGain = null;
+let musicMuted = false;
+let currentVol = 0.6;
+let musicStarted = false;
+
+function initAndStartMusic() {
+  if (musicStarted) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = currentVol * 0.5;
+    masterGain.connect(audioCtx.destination);
+    musicStarted = true;
+    scheduleMusicLoop();
+  } catch(e) { console.log('Audio error:', e); }
+}
+
+// --- Continuous looping scheduler ---
+function scheduleMusicLoop() {
+  if (!audioCtx) return;
+  const BPM = 130, beat = 60 / BPM, noteLen = beat * 0.5;
+  // Super catchy cartoon melody (C major)
+  const melody = [
+    523,659,784,1047, 880,784,659,784,
+    523,659,784,880,  1047,880,784,659,
+    784,880,1047,880, 784,659,523,659,
+    392,523,659,784,  523,659,784,659,
+    523,784,659,523,  440,523,659,523,
+    659,784,880,1047, 784,880,784,659,
+    523,659,784,880,  523,440,523,392,
+    523,659,784,1047, 880,1047,880,784
+  ];
+  const harmony = [
+    330,415,523,659, 554,523,415,523,
+    330,415,523,554, 659,554,523,415,
+    523,554,659,554, 523,415,330,415,
+    247,330,415,523, 330,415,523,415,
+    330,523,415,330, 277,330,415,330,
+    415,523,554,659, 523,554,523,415,
+    330,415,523,554, 330,277,330,247,
+    330,415,523,659, 554,659,554,523
+  ];
+  const bass = [131,131,165,131,110,110,131,110,131,131,165,131,98,98,110,98,
+                131,131,165,131,110,110,131,110,131,131,165,131,98,98,110,98];
+
+  let nIdx = 0, bIdx = 0;
+  let t = audioCtx.currentTime + 0.05;
+  const totalNotes = melody.length;
+
+  function sched() {
+    if (!audioCtx || !masterGain) return;
+    const lookAhead = 0.3;
+    while (t < audioCtx.currentTime + lookAhead) {
+      const i = nIdx % totalNotes;
+
+      // Main melody (square wave - chiptune)
+      makeOsc('square', melody[i], 0.12, t, noteLen * 0.82);
+
+      // Harmony (triangle - softer)
+      makeOsc('triangle', harmony[i], 0.06, t, noteLen * 0.75);
+
+      // Bass (every 4 notes)
+      if (nIdx % 4 === 0) {
+        makeOsc('triangle', bass[bIdx % bass.length], 0.18, t, beat * 0.85);
+        bIdx++;
+      }
+
+      // Hi-hat (every 2)
+      if (nIdx % 2 === 0) makeNoise(8000, 0.055, t, 0.04);
+
+      // Kick (beats 1 & 3 of every bar of 8)
+      if (nIdx % 8 === 0 || nIdx % 8 === 4) makeKick(t);
+
+      // Snare (beats 2 & 4)
+      if (nIdx % 8 === 2 || nIdx % 8 === 6) makeSnare(t);
+
+      nIdx++;
+      t += noteLen;
+    }
+    setTimeout(sched, 100);
+  }
+  sched();
+}
+
+function makeOsc(type, freq, gain, start, dur) {
+  if (!audioCtx || audioCtx.state !== 'running') return;
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(gain, start);
+    g.gain.exponentialRampToValueAtTime(0.001, start + dur);
+    o.connect(g); g.connect(masterGain);
+    o.start(start); o.stop(start + dur + 0.01);
+  } catch(e) {}
+}
+function makeNoise(freq, gain, start, dur) {
+  try {
+    const buf = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * dur), audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const n = audioCtx.createBufferSource();
+    const f = audioCtx.createBiquadFilter(); f.type='highpass'; f.frequency.value=freq;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(gain, start); g.gain.exponentialRampToValueAtTime(0.001, start + dur);
+    n.buffer = buf; n.connect(f); f.connect(g); g.connect(masterGain); n.start(start);
+  } catch(e) {}
+}
+function makeKick(start) {
+  try {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(180, start); o.frequency.exponentialRampToValueAtTime(0.001, start+0.25);
+    g.gain.setValueAtTime(0.4, start); g.gain.exponentialRampToValueAtTime(0.001, start+0.25);
+    o.connect(g); g.connect(masterGain); o.start(start); o.stop(start+0.26);
+  } catch(e) {}
+}
+function makeSnare(start) {
+  try {
+    const buf = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate*0.1), audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+    const n=audioCtx.createBufferSource(), g=audioCtx.createGain();
+    g.gain.setValueAtTime(0.12,start); g.gain.exponentialRampToValueAtTime(0.001,start+0.1);
+    n.buffer=buf; n.connect(g); g.connect(masterGain); n.start(start);
+  } catch(e) {}
+}
+
+// Volume controls
+function toggleMute() {
+  if (!audioCtx) return;
+  musicMuted = !musicMuted;
+  masterGain.gain.setTargetAtTime(musicMuted ? 0 : currentVol * 0.5, audioCtx.currentTime, 0.2);
+  document.getElementById('muteBtn').textContent = musicMuted ? '🔇' : '🔊';
+}
+function setVolume(val) {
+  currentVol = val / 100;
+  document.getElementById('volPct').textContent = val + '%';
+  if (masterGain && !musicMuted) {
+    masterGain.gain.setTargetAtTime(currentVol * 0.5, audioCtx.currentTime, 0.1);
+  }
+}
+function changeVol(delta) {
+  const slider = document.getElementById('volSlider');
+  const newVal = Math.max(0, Math.min(100, parseInt(slider.value) + delta));
+  slider.value = newVal;
+  setVolume(newVal);
+  // Funny bounce on slider
+  slider.style.transform = 'scaleY(1.4)';
+  setTimeout(() => slider.style.transform = '', 200);
+}
+
+// ================================================================
+//  🎉 FUNNY SOUND EFFECTS
+// ================================================================
+function playSFX(type) {
+  if (!audioCtx || audioCtx.state !== 'running') return;
+  const t = audioCtx.currentTime;
+
+  switch(type) {
+    case 'pop':   // Classic cartoon pop
+      makeOsc('square', 880, 0.3, t, 0.05);
+      makeOsc('square', 1760, 0.2, t+0.04, 0.08);
+      makeOsc('square', 2640, 0.15, t+0.08, 0.06);
+      break;
+
+    case 'boing': // Stretchy spring boing
+      for(let i=0;i<20;i++){
+        const freq = 200 + (i*80) * Math.sin(i * 0.4);
+        makeOsc('sine', Math.abs(freq)+50, 0.15, t+i*0.018, 0.05);
+      }
+      break;
+
+    case 'slide_whistle': // Funny slide whistle up
+      try {
+        const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+        o.type='sine'; o.frequency.setValueAtTime(300,t); o.frequency.exponentialRampToValueAtTime(1800,t+0.4);
+        g.gain.setValueAtTime(0.25,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.45);
+        o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.45);
+      } catch(e){}
+      break;
+
+    case 'slide_whistle_down': // Slide whistle DOWN (sad trombone feel)
+      try {
+        const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+        o.type='sine'; o.frequency.setValueAtTime(1600,t); o.frequency.exponentialRampToValueAtTime(200,t+0.5);
+        g.gain.setValueAtTime(0.2,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.55);
+        o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.55);
+      } catch(e){}
+      break;
+
+    case 'tada': // Big fanfare
+      [[523,0],[659,.08],[784,.16],[1047,.24],[1047,.34],[784,.38],[1047,.44]].forEach(([f,d])=>makeOsc('square',f,0.2,t+d,0.15));
+      makeKick(t); makeKick(t+0.24); makeKick(t+0.44);
+      break;
+
+    case 'walk':  // Cartoony footstep
+      makeOsc('triangle', 120+Math.random()*20, 0.12, t, 0.08);
+      makeKick(t);
+      break;
+
+    case 'whoosh': // Fast whoosh
+      makeNoise(800, 0.25, t, 0.3);
+      try {
+        const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+        o.type='sawtooth'; o.frequency.setValueAtTime(400,t); o.frequency.exponentialRampToValueAtTime(100,t+0.3);
+        g.gain.setValueAtTime(0.15,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+        o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.31);
+      }catch(e){}
+      break;
+
+    case 'laugh': // Cartoon laugh (wa-wa-wa)
+      [262,294,330,294,262,294,330,262].forEach((f,i)=>{
+        makeOsc('sawtooth', f, 0.12, t+i*0.07, 0.09);
+      });
+      break;
+
+    case 'electric': // Robo electric zap
+      try {
+        const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+        o.type='sawtooth'; o.frequency.setValueAtTime(50,t); o.frequency.exponentialRampToValueAtTime(2000,t+0.1); o.frequency.exponentialRampToValueAtTime(50,t+0.2);
+        g.gain.setValueAtTime(0.3,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.22);
+        o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.22);
+      }catch(e){}
+      makeNoise(1000, 0.2, t, 0.2);
+      break;
+
+    case 'coin':  // Coin collect sound
+      [1047,1319,1568,2093].forEach((f,i)=>makeOsc('square',f,0.15,t+i*0.06,0.1));
+      break;
+
+    case 'drum_roll': // Excitement drum roll
+      for(let i=0;i<12;i++) { makeSnare(t+i*0.04); makeNoise(5000,0.08,t+i*0.04,0.03); }
+      makeKick(t+0.5); makeKick(t+0.52);
+      break;
+
+    case 'explosion': // Big comic explosion
+      makeNoise(200, 0.4, t, 0.5);
+      makeKick(t); makeKick(t+0.05); makeKick(t+0.1);
+      makeOsc('sawtooth',80,0.3,t,0.4);
+      makeOsc('sawtooth',60,0.25,t+0.05,0.35);
+      break;
+
+    case 'twinkle': // Stars twinkling
+      [1047,1319,1568,1319,1047].forEach((f,i)=>{
+        makeOsc('sine',f,0.1,t+i*0.1,0.12);
+        makeOsc('triangle',f*1.5,0.05,t+i*0.1+0.05,0.08);
+      });
+      break;
+  }
+}
+
+// ================================================================
+//  🎭 SDG DATA
+// ================================================================
+const SDGs = [
+  {num:1,title:"No Poverty",emoji:"🏘️",color:"#E5243B",bg:"#FFF5E0",
+   env:["🏠","🌳","🌻","👨‍👩‍👧","💰"],
+   roboSays:"GOAL 1! Nobody should be poor! Everyone gets a chance! 🏘️",
+   narration:"<span class='hi'>SDG 1: NO POVERTY!</span> — <span class='goal'>Everyone deserves a chance to succeed!</span> No one left behind!",
+   mayaSays:"Homes for everyone! 🏠",leoSays:"Jobs for all! 💼",
+   aw:"POW!",ac:"aw-pow",funnyAnim:"squishing",funnySfx:"boing",funnyEmojis:["💰","🏠","⭐","✨"]},
+
+  {num:2,title:"Zero Hunger",emoji:"🌾",color:"#DDA63A",bg:"#FFF9E6",
+   env:["🌽","🍅","🥕","👨‍🌾","🐄"],
+   roboSays:"GOAL 2! Healthy food for every person on Earth! Nom nom! 🌾",
+   narration:"<span class='hi'>SDG 2: ZERO HUNGER!</span> — <span class='goal'>Grow food, share food, feed the world!</span>",
+   mayaSays:"Eat your veggies! 🥦",leoSays:"Farmers are heroes! 👨‍🌾",
+   aw:"YUM!",ac:"aw-yum",funnyAnim:"shaking",funnySfx:"laugh",funnyEmojis:["🍎","🌽","🥕","🍅"]},
+
+  {num:3,title:"Good Health",emoji:"💊",color:"#4C9F38",bg:"#EFFFEE",
+   env:["🏥","💊","🩺","🌿","🏃"],
+   roboSays:"GOAL 3! I just ran a health scan — you're AWESOME! 💚",
+   narration:"<span class='hi'>SDG 3: GOOD HEALTH!</span> — <span class='goal'>Medicine and exercise keep us happy and strong!</span>",
+   mayaSays:"Doctor power! 👩‍⚕️",leoSays:"Exercise! Woo! 🏃",
+   aw:"ZAP!",ac:"aw-zap",funnyAnim:"floating",funnySfx:"slide_whistle",funnyEmojis:["❤️","💊","🌿","⭐"]},
+
+  {num:4,title:"Quality Education",emoji:"📚",color:"#C5192D",bg:"#FFF0F0",
+   env:["🏫","📖","✏️","🔭","🎒"],
+   roboSays:"GOAL 4! My brain has 1 trillion books! YOU can have that too! 📚",
+   narration:"<span class='hi'>SDG 4: QUALITY EDUCATION!</span> — <span class='goal'>School builds a brighter, smarter future for all!</span>",
+   mayaSays:"School rocks! ✏️",leoSays:"Read EVERYTHING! 📖",
+   aw:"WOW!",ac:"aw-wow",funnyAnim:"spinning",funnySfx:"electric",funnyEmojis:["📚","⭐","✏️","🌟"]},
+
+  {num:5,title:"Gender Equality",emoji:"⚖️",color:"#FF3A21",bg:"#FFF8EE",
+   env:["👩‍🔬","👨‍🍳","🤝","👩‍💼","🌟"],
+   roboSays:"GOAL 5! I have no gender — I'm equally SUPER to all! ⚖️",
+   narration:"<span class='hi'>SDG 5: GENDER EQUALITY!</span> — <span class='goal'>Equal rights and equal chances for EVERYONE!</span>",
+   mayaSays:"Girls rule! 💪",leoSays:"Equal power! ⚖️",
+   aw:"WHAM!",ac:"aw-pow",funnyAnim:"happy",funnySfx:"coin",funnyEmojis:["⚖️","🌟","💪","✨"]},
+
+  {num:6,title:"Clean Water",emoji:"💧",color:"#26BDE2",bg:"#E8F8FF",
+   env:["🌊","🐟","💧","🌿","🦋"],
+   roboSays:"GOAL 6! I drink motor oil but YOU need clean water! 💧",
+   narration:"<span class='hi'>SDG 6: CLEAN WATER!</span> — <span class='goal'>Every person needs safe, clean water to survive!</span>",
+   mayaSays:"Clean rivers! 🌊",leoSays:"Save the water! 💧",
+   aw:"SPLASH!",ac:"aw-splash",funnyAnim:"shaking",funnySfx:"boing",funnyEmojis:["💧","🌊","🐟","💎"]},
+
+  {num:7,title:"Clean Energy",emoji:"⚡",color:"#FCC30B",bg:"#FFFDE8",
+   env:["☀️","💨","⚡","🔋","🌱"],
+   roboSays:"GOAL 7! I run on solar power — zzzap! FULLY CHARGED! ⚡",
+   narration:"<span class='hi'>SDG 7: CLEAN ENERGY!</span> — <span class='goal'>Solar and wind power protect our beautiful planet!</span>",
+   mayaSays:"Solar rules! ☀️",leoSays:"Wind power! 💨",
+   aw:"ZAP!",ac:"aw-zap",funnyAnim:"spinning",funnySfx:"electric",funnyEmojis:["⚡","☀️","🔋","✨"]},
+
+  {num:8,title:"Decent Work",emoji:"📈",color:"#A21942",bg:"#FFF0F5",
+   env:["🏗️","💼","🔧","📊","🤝"],
+   roboSays:"GOAL 8! My job is being AWESOME — and I love it! 📈",
+   narration:"<span class='hi'>SDG 8: DECENT WORK!</span> — <span class='goal'>Fair jobs help communities grow and thrive together!</span>",
+   mayaSays:"Fair wages! 💰",leoSays:"Safe workplaces! 🏗️",
+   aw:"BOOM!",ac:"aw-boom",funnyAnim:"squishing",funnySfx:"drum_roll",funnyEmojis:["💼","📈","🤝","⭐"]},
+
+  {num:9,title:"Innovation",emoji:"🔬",color:"#FD6925",bg:"#FFF5EE",
+   env:["🚀","💡","🏙️","🔭","🤖"],
+   roboSays:"GOAL 9! I AM innovation! BEEP BOOP I am BRILLIANT! 🤖",
+   narration:"<span class='hi'>SDG 9: INNOVATION!</span> — <span class='goal'>Smart tech and new ideas build an awesome future!</span>",
+   mayaSays:"Invent stuff! 💡",leoSays:"Science! 🔬",
+   aw:"POW!",ac:"aw-pow",funnyAnim:"floating",funnySfx:"electric",funnyEmojis:["💡","🚀","🔬","⭐"]},
+
+  {num:10,title:"Reduced Inequalities",emoji:"🤝",color:"#DD1367",bg:"#FFF0F8",
+   env:["🌍","🧑","👴","👶","❤️"],
+   roboSays:"GOAL 10! We're all equal — even humans and robots! 🌈",
+   narration:"<span class='hi'>SDG 10: EQUAL CHANCES!</span> — <span class='goal'>Lift everyone up! Leave nobody behind!</span>",
+   mayaSays:"We're all equal! 🤝",leoSays:"Help others! ❤️",
+   aw:"WOW!",ac:"aw-wow",funnyAnim:"waving",funnySfx:"laugh",funnyEmojis:["🤝","❤️","🌈","⭐"]},
+
+  {num:11,title:"Sustainable Cities",emoji:"🏙️",color:"#FD9D24",bg:"#FFF8EE",
+   env:["🌳","🚲","🏡","🌿","🚌"],
+   roboSays:"GOAL 11! I mapped 1000 cities — the green ones are BEST! 🌳",
+   narration:"<span class='hi'>SDG 11: SUSTAINABLE CITIES!</span> — <span class='goal'>Safe, green, happy cities for all people!</span>",
+   mayaSays:"Green parks! 🌳",leoSays:"Clean transport! 🚲",
+   aw:"VROOM!",ac:"aw-boom",funnyAnim:"walking",funnySfx:"slide_whistle",funnyEmojis:["🌳","🏡","🚲","⭐"]},
+
+  {num:12,title:"Responsible Use",emoji:"♻️",color:"#BF8B2E",bg:"#F8FFF0",
+   env:["♻️","🌿","🛒","💧","🌍"],
+   roboSays:"GOAL 12! I recycle my own circuits! VERY responsible! ♻️",
+   narration:"<span class='hi'>SDG 12: RESPONSIBLE USE!</span> — <span class='goal'>Reduce, reuse, recycle — every action protects Earth!</span>",
+   mayaSays:"Recycle! ♻️",leoSays:"Zero waste! 🌿",
+   aw:"ZAP!",ac:"aw-zap",funnyAnim:"spinning",funnySfx:"coin",funnyEmojis:["♻️","🌿","💚","⭐"]},
+
+  {num:13,title:"Climate Action",emoji:"🌡️",color:"#3F7E44",bg:"#EFFFEE",
+   env:["🌳","🌱","☀️","🌬️","🌍"],
+   roboSays:"GOAL 13! My temperature sensors say: SAVE THE CLIMATE NOW! 🌍",
+   narration:"<span class='hi'>SDG 13: CLIMATE ACTION!</span> — <span class='goal'>Together we fight climate change and protect our home!</span>",
+   mayaSays:"Plant ALL the trees! 🌳",leoSays:"Stop CO2! 🌍",
+   aw:"KAPOW!",ac:"aw-pow",funnyAnim:"squishing",funnySfx:"explosion",funnyEmojis:["🌳","🌱","💚","🌍"]},
+
+  {num:14,title:"Life Below Water",emoji:"🐋",color:"#0A97D9",bg:"#E8F8FF",
+   env:["🐠","🐢","🦈","🌊","🐙"],
+   roboSays:"GOAL 14! I tried swimming once. I sank. SAVE THE OCEANS! 🌊",
+   narration:"<span class='hi'>SDG 14: LIFE BELOW WATER!</span> — <span class='goal'>Keep oceans clean for fish, turtles and whales!</span>",
+   mayaSays:"Save the fish! 🐠",leoSays:"Clean seas! 🌊",
+   aw:"SPLASH!",ac:"aw-splash",funnyAnim:"floating",funnySfx:"boing",funnyEmojis:["🐋","💧","🌊","🐠"]},
+
+  {num:15,title:"Life on Land",emoji:"🦁",color:"#56C02B",bg:"#F0FFF0",
+   env:["🦁","🐘","🦋","🌲","🐸"],
+   roboSays:"GOAL 15! A lion once tried to eat me. Broke his teeth! 🌲",
+   narration:"<span class='hi'>SDG 15: LIFE ON LAND!</span> — <span class='goal'>Protect forests and animals for future generations!</span>",
+   mayaSays:"Save ALL animals! 🦁",leoSays:"Guard the forests! 🌲",
+   aw:"ROAR!",ac:"aw-roar",funnyAnim:"shaking",funnySfx:"laugh",funnyEmojis:["🦁","🌳","🦋","🐘"]},
+
+  {num:16,title:"Peace & Justice",emoji:"☮️",color:"#00689D",bg:"#EEF5FF",
+   env:["🕊️","⚖️","🤝","😊","🌍"],
+   roboSays:"GOAL 16! I always choose peace... unless it's a robot battle! ☮️",
+   narration:"<span class='hi'>SDG 16: PEACE & JUSTICE!</span> — <span class='goal'>Solve problems peacefully — be fair, be kind!</span>",
+   mayaSays:"Choose peace! 🕊️",leoSays:"Be fair always! ⚖️",
+   aw:"WOW!",ac:"aw-wow",funnyAnim:"waving",funnySfx:"twinkle",funnyEmojis:["🕊️","☮️","⭐","❤️"]},
+
+  {num:17,title:"Partnerships",emoji:"🌐",color:"#19486A",bg:"#EEF5FF",
+   env:["🌍","🌎","🌏","🤝","⭐"],
+   roboSays:"GOAL 17! FINAL GOAL! Together we're UNSTOPPABLE! ALL of us! 🌐",
+   narration:"<span class='hi'>SDG 17: PARTNERSHIPS!</span> — <span class='goal'>Every country, every person — TOGETHER WE CAN DO IT!</span>",
+   mayaSays:"TEAMWORK FOREVER! 🌍",leoSays:"WE DID IT ALL! 🎉",
+   aw:"HOORAY!",ac:"aw-wow",funnyAnim:"happy",funnySfx:"tada",funnyEmojis:["🌍","🌎","🌏","🎉"]}
+];
+
+// ================================================================
+//  BUILD UI
+// ================================================================
+const pw = document.getElementById('progressWrap');
+SDGs.forEach((_,i) => {
+  const d = document.createElement('div'); d.className='pdot'; d.id=`dot-${i}`; pw.appendChild(d);
+});
+const sl = document.getElementById('speedLines');
+for(let i=0;i<22;i++){
+  const l=document.createElement('div');l.className='speed-line';
+  l.style.cssText=`width:${100+Math.random()*220}px;left:${Math.random()*100}%;top:${Math.random()*100}%;transform:rotate(${Math.random()*180}deg)`;
+  sl.appendChild(l);
+}
+
+// Character refs
+const maya=document.getElementById('maya'), leo=document.getElementById('leo'), robo=document.getElementById('robo');
+const mS=document.getElementById('mayaSpeech'), lS=document.getElementById('leoSpeech'), rS=document.getElementById('roboSpeech');
+
+// ================================================================
+//  HELPERS
+// ================================================================
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function setPos(el,l){el.style.left=l}
+function setCls(el,c){el.classList.remove('walking','talking','happy','waving','spinning','shaking','squishing','floating');if(c)el.classList.add(c)}
+function say(el,txt,dur){return new Promise(r=>{el.textContent=txt;el.classList.add('show');setTimeout(()=>{el.classList.remove('show');r()},dur)})}
+function narrate(html){document.getElementById('narratorText').innerHTML=html}
+
+function walk(el,to,dur=1100){
+  return new Promise(r=>{
+    setCls(el,'walking');
+    el.style.transition=`left ${dur}ms cubic-bezier(.25,.46,.45,.94)`;
+    el.style.left=to;
+    let wt=setInterval(()=>playSFX('walk'),290);
+    setTimeout(()=>{clearInterval(wt);setCls(el,null);r()},dur);
+  });
+}
+
+function showActionWord(txt,cls,x,y){
+  const aw=document.createElement('div');
+  aw.className=`action-word ${cls}`;
+  aw.textContent=txt;
+  aw.style.left=(x||18+Math.random()*48)+'%';
+  aw.style.top=(y||12+Math.random()*30)+'%';
+  document.getElementById('stage').appendChild(aw);
+  playSFX('pop');
+  setTimeout(()=>{
+    aw.style.transition='opacity .4s, transform .4s';
+    aw.style.opacity='0';
+    aw.style.transform='rotate(-7deg) scale(1.5)';
+    setTimeout(()=>aw.remove(),420);
+  },1100);
+}
+
+function flashSL(){
+  const s=document.getElementById('speedLines');
+  s.classList.add('active');
+  setTimeout(()=>s.classList.remove('active'),320);
+}
+
+function screenFlash(color='#FFE600'){
+  const sf=document.getElementById('screenFlash');
+  sf.style.background=color; sf.style.opacity='.35';
+  setTimeout(()=>{sf.style.transition='opacity .3s';sf.style.opacity='0';},80);
+  setTimeout(()=>{sf.style.transition='';},400);
+}
+
+function spawnFunnyEmojis(emojis, count=6){
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div');
+    el.className='funny-float';
+    el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.cssText=`left:${15+Math.random()*70}%;bottom:${30+Math.random()*20}%;--fsz:${20+Math.random()*20}px;--fdur:${1.2+Math.random()*.8}s;animation-delay:${i*0.12}s`;
+    document.getElementById('stage').appendChild(el);
+    setTimeout(()=>el.remove(), 2400+i*120);
+  }
+}
+
+function starBurst(x,y){
+  const emojis=['✨','⭐','💥','🌟','💫'];
+  const angles=[0,45,90,135,180,225,270,315];
+  angles.forEach((angle,i)=>{
+    const el=document.createElement('div');
+    el.className='starburst-fx';
+    const rad=angle*Math.PI/180;
+    const dist=60+Math.random()*40;
+    el.style.cssText=`left:${x}px;top:${y}px;--tx:${Math.cos(rad)*dist}px;--ty:${Math.sin(rad)*dist}px;--ssz:${16+Math.random()*14}px;animation-delay:${i*0.04}s`;
+    el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    document.getElementById('stage').appendChild(el);
+    setTimeout(()=>el.remove(),1000);
+  });
+}
+
+function showBadge(s){
+  document.getElementById('sdgBadgeIcon').textContent=s.emoji;
+  document.getElementById('sdgBadgeNum').textContent=`SDG ${s.num}`;
+  document.getElementById('sdgBadgeName').textContent=s.title;
+  document.getElementById('sdgBadge').style.background=s.color;
+  document.getElementById('sdgBadge').style.opacity='1';
+}
+function showIcon(s){
+  document.getElementById('sdgIconEmoji').textContent=s.emoji;
+  document.getElementById('sdgIconLabel').textContent=`SDG ${s.num}: ${s.title}`;
+  document.getElementById('sdgIconPop').style.background=`linear-gradient(135deg,${s.color},${s.color}bb)`;
+  document.getElementById('sdgIconPop').classList.add('show');
+  playSFX('tada');
+}
+function hideIcon(){document.getElementById('sdgIconPop').classList.remove('show')}
+function setEnv(s){
+  document.getElementById('envContainer').innerHTML='';
+  const pos=[
+    {l:'4%',b:'34%',sz:'clamp(26px,5vw,52px)'},{l:'11%',b:'43%',sz:'clamp(20px,3.8vw,38px)'},
+    {l:'74%',b:'35%',sz:'clamp(27px,5vw,52px)'},{l:'82%',b:'44%',sz:'clamp(20px,3.5vw,38px)'},
+    {l:'90%',b:'33%',sz:'clamp(22px,4vw,44px)'}
+  ];
+  s.env.forEach((e,i)=>{
+    const el=document.createElement('div');el.className='env-el';
+    const p=pos[i]||{l:`${8+i*15}%`,b:'36%',sz:'38px'};
+    el.style.cssText=`left:${p.l};bottom:${p.b};--sz:${p.sz};--dur:${2.5+i*.4}s;--del:${i*.2}s;--r1:${-2+i}deg;--r2:${3+i}deg;--ty:-${8+i*2}px`;
+    el.textContent=e;document.getElementById('envContainer').appendChild(el);
+  });
+}
+function setBg(s){document.getElementById('panelBg').style.background=s.bg}
+function updateDots(idx){SDGs.forEach((_,i)=>{const d=document.getElementById(`dot-${i}`);if(d)d.className='pdot'+(i<idx?' done':i===idx?' active':'')})}
+
+// ================================================================
+//  SCENE RUNNER
+// ================================================================
+async function runScene(idx){
+  if(idx>=SDGs.length){showFinal();return}
+  const s=SDGs[idx];
+  hideIcon(); setBg(s); setEnv(s); updateDots(idx); showBadge(s);
+  flashSL(); screenFlash(s.color);
+  if(idx===0){setPos(maya,'-20%');setPos(leo,'-32%');setPos(robo,'-13%')}
+
+  narrate(`🎬 SCENE <span class='hi'>${s.num}</span> OF <span class='goal'>17</span>...`);
+
+  // Walk in
+  await Promise.all([
+    walk(robo,'38%',950),
+    wait(160).then(()=>walk(maya,'22%',950)),
+    wait(320).then(()=>walk(leo,'54%',950)),
+  ]);
+  await wait(180);
+
+  // Robo announces with funny anim
+  setCls(robo,'talking');
+  showActionWord(s.aw, s.ac);
+  playSFX(s.funnySfx);
+  narrate(s.narration);
+  await say(rS, s.roboSays, 2600);
+
+  // Funny animation on one character
+  const funChar = [maya,leo,robo][idx%3];
+  setCls(funChar, s.funnyAnim);
+  playSFX(s.funnySfx);
+  spawnFunnyEmojis(s.funnyEmojis, 7);
+
+  // Star burst at center
+  starBurst(window.innerWidth/2, window.innerHeight*0.45);
+  await wait(400);
+
+  // Show SDG Icon
+  showIcon(s); setCls(robo,'happy');
+  await wait(500);
+
+  // Maya & Leo react
+  setCls(maya,'happy'); setCls(leo,'waving');
+  await Promise.all([
+    say(mS, s.mayaSays, 1800),
+    wait(330).then(()=>say(lS, s.leoSays, 1800))
+  ]);
+
+  // Everyone dances!
+  setCls(maya,'happy'); setCls(leo,'happy'); setCls(robo,'happy');
+  showActionWord('YAY!','aw-wow',55,15);
+  playSFX('coin');
+  spawnFunnyEmojis(s.funnyEmojis, 5);
+  await wait(800);
+
+  // Walk off
+  hideIcon(); flashSL(); playSFX('whoosh'); screenFlash('#000');
+  setCls(maya,'walking'); setCls(leo,'walking'); setCls(robo,'walking');
+  await wait(250);
+  await Promise.all([
+    walk(maya,'110%',800),
+    wait(65).then(()=>walk(leo,'110%',800)),
+    wait(130).then(()=>walk(robo,'110%',800)),
+  ]);
+  setPos(maya,'-25%'); setPos(leo,'-36%'); setPos(robo,'-16%');
+  await wait(260);
+  runScene(idx+1);
+}
+
+// ================================================================
+//  FINAL SCREEN
+// ================================================================
+function showFinal(){
+  const fc=document.getElementById('finalCard'); fc.classList.add('show');
+  const grid=document.getElementById('finalGrid'); grid.innerHTML='';
+  SDGs.forEach((s,i)=>{
+    const d=document.createElement('div'); d.className='fg-item';
+    d.textContent=s.emoji; d.title=s.title;
+    d.style.background=s.color; d.style.setProperty('--d',`${i*.07+.3}s`);
+    grid.appendChild(d);
+  });
+  playSFX('explosion');
+  setTimeout(()=>playSFX('tada'),600);
+  setTimeout(spawnConf,400);
+}
+function spawnConf(){
+  const e=['🎉','⭐','✨','🌟','🎊','💛','❤️','💙','🌍','🎈','💥','🦸','🏆','🌈'];
+  for(let i=0;i<65;i++){
+    const c=document.createElement('div'); c.className='conf';
+    c.textContent=e[Math.floor(Math.random()*e.length)];
+    c.style.left=Math.random()*100+'vw';
+    c.style.setProperty('--dur',(2+Math.random()*3.5)+'s');
+    c.style.setProperty('--del',(Math.random()*2.5)+'s');
+    document.body.appendChild(c); setTimeout(()=>c.remove(),7000);
+  }
+}
+
+// ================================================================
+//  MAIN START — triggered by user tap to allow audio
+// ================================================================
+let started = false;
+async function startShow(){
+  if(started) return; started=true;
+  const tc=document.getElementById('titleCard');
+
+  // Init audio NOW (inside user gesture)
+  initAndStartMusic();
+
+  // Fade out title
+  tc.style.opacity='0'; tc.style.pointerEvents='none';
+  await wait(900); tc.style.display='none';
+
+  narrate("BOOM! 💥 I'm <span class='hi'>ROBO</span>! Meet <span class='goal'>MAYA & LEO</span>! Our EPIC world adventure STARTS NOW!");
+  setPos(maya,'-20%'); setPos(leo,'-32%'); setPos(robo,'-13%');
+  await wait(380);
+  flashSL(); screenFlash('#FF2D2D');
+  playSFX('electric');
+
+  await Promise.all([
+    walk(robo,'40%',1300),
+    wait(240).then(()=>walk(maya,'24%',1300)),
+    wait(480).then(()=>walk(leo,'56%',1300)),
+  ]);
+  setCls(maya,'happy'); setCls(leo,'happy'); setCls(robo,'waving');
+  showActionWord("LET'S GO!",'aw-wow');
+  playSFX('slide_whistle');
+  spawnFunnyEmojis(['🌍','⭐','💥','🎉','🌟'],8);
+
+  await say(rS,"17 GOALS! One epic adventure! Let's save the world! 🌍", 2200);
+  narrate("🌟 <span class='hi'>17 SUSTAINABLE DEVELOPMENT GOALS</span> — <span class='goal'>Let's discover how to SAVE THE WORLD!</span> 🦸");
+  await wait(1600);
+
+  flashSL(); playSFX('whoosh'); screenFlash('#0057FF');
+  await Promise.all([
+    walk(maya,'110%',800),
+    wait(65).then(()=>walk(leo,'110%',800)),
+    wait(130).then(()=>walk(robo,'110%',800)),
+  ]);
+  setPos(maya,'-25%'); setPos(leo,'-36%'); setPos(robo,'-16%');
+  await wait(360);
+  runScene(0);
+}
+
+// Start on first click/tap anywhere (required for audio autoplay policy)
+document.addEventListener('click', startShow, {once:true});
+document.addEventListener('touchstart', startShow, {once:true});
+</script>
+</body>
+</html>
